@@ -3,12 +3,13 @@ export interface IShift {
   time: string;
   unavailable: IStudent[];
   chosen: undefined | IStudent;
+  assignStudent(student: IStudent): void;
   addUnavailable(student: IStudent): void;
   printUnavailable(): void;
 }
 
 export interface IStudent {
-  name: String;
+  name: string;
   shifts: IShift[];
   preferences: IPreference[];
 
@@ -21,7 +22,13 @@ export interface IStudent {
 export interface IPreference {
   student: IStudent;
   available: boolean;
-  shift: IShift;
+  shift: IPreferenceShift;
+  handled: boolean;
+}
+
+export interface IPreferenceShift {
+  day: number;
+  time: string;
 }
 
 export interface IOrganizedShiftDay {

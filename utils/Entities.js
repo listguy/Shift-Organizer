@@ -6,6 +6,9 @@ var Shift = /** @class */ (function () {
         this.day = day;
         this.time = time;
     }
+    Shift.prototype.assignStudent = function (student) {
+        this.chosen = student;
+    };
     Shift.prototype.addUnavailable = function (student) {
         this.unavailable.push(student);
     };
@@ -45,6 +48,7 @@ var Preference = /** @class */ (function () {
         this.student = student;
         this.shift = shift;
         this.available = available;
+        this.handled = false;
     }
     return Preference;
 }());

@@ -1,4 +1,4 @@
-import { IShift, IStudent, IPreference } from "./interface";
+import { IShift, IStudent, IPreference, IPreferenceShift } from "./interface";
 
 export class Shift implements IShift {
   day: number;
@@ -9,6 +9,10 @@ export class Shift implements IShift {
   constructor(day: number, time: string) {
     this.day = day;
     this.time = time;
+  }
+
+  assignStudent(student: IStudent) {
+    this.chosen = student;
   }
 
   addUnavailable(student: IStudent) {
@@ -54,13 +58,15 @@ export class Student implements IStudent {
 
 export class Preference implements IPreference {
   student: IStudent;
-  shift: IShift;
+  shift: IPreferenceShift;
   available: boolean;
+  handled: boolean;
 
-  constructor(student: IStudent, shift: IShift, available: boolean) {
+  constructor(student: IStudent, shift: IPreferenceShift, available: boolean) {
     this.student = student;
     this.shift = shift;
     this.available = available;
+    this.handled = false;
   }
 }
 
