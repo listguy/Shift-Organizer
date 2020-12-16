@@ -61,6 +61,24 @@ function orginizeShifts(students: IStudent[]): IOrganizedShiftDay[] {
     pref.handled = true;
   });
 
+  // assign all other students to shifts
+  shifts.forEach((shiftsDay: IOrganizedShiftDay) => {
+    Object.keys(shiftsDay).forEach((key: string) => {
+      //TODO fix type
+      //@ts-ignore
+      const currentShift = shiftsDay[key];
+      for (let student of students) {
+        if (currentShift.chosen) continue;
+        if (currentShift.isStudentUnavailable(student)) continue;
+        if (numberOfShiftsOfStudent[student.name] === 3) continue;
+        currentShift.assignStudent(student);
+        numberOfShiftsOfStudent[student.name] += 1;
+        break;
+      }
+      if (!currentShift.chosen) throw "a Shift with no student! stopping";
+    });
+  });
+
   return shifts;
 }
 
@@ -104,4 +122,4 @@ const students: IStudent[] = names.map((name: string) => {
 });
 
 console.log(orginizeShifts(students).forEach((day) => console.log(day)));
-students.forEach((student) => student.printPreferences());
+// students.forEach((student) => student.printPreferences());

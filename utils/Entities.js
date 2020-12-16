@@ -1,57 +1,57 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Shift = /** @class */ (function () {
-    function Shift(day, time) {
+class Shift {
+    constructor(day, time) {
         this.unavailable = [];
         this.day = day;
         this.time = time;
     }
-    Shift.prototype.assignStudent = function (student) {
+    assignStudent(student) {
         this.chosen = student;
-    };
-    Shift.prototype.addUnavailable = function (student) {
+    }
+    addUnavailable(student) {
         this.unavailable.push(student);
-    };
-    Shift.prototype.printUnavailable = function () {
-        var formated = this.unavailable.map(function (student) { return student.name; });
+    }
+    isStudentUnavailable(student) {
+        return this.unavailable.includes(student);
+    }
+    printUnavailable() {
+        const formated = this.unavailable.map((student) => student.name);
         console.log(formated);
-    };
-    return Shift;
-}());
+    }
+}
 exports.Shift = Shift;
-var Student = /** @class */ (function () {
-    function Student(name) {
+class Student {
+    constructor(name) {
         this.shifts = [];
         this.preferences = [];
         this.name = name;
     }
-    Student.prototype.addShift = function (shift) {
+    addShift(shift) {
         this.shifts.push(shift);
-    };
-    Student.prototype.printShifts = function () {
-        var formated = this.shifts.map(function (shift) {
+    }
+    printShifts() {
+        const formated = this.shifts.map((shift) => {
             return { day: shift.day, time: shift.time };
         });
         console.log(formated);
-    };
-    Student.prototype.addPreference = function (preference) {
+    }
+    addPreference(preference) {
         this.preferences.push(preference);
-    };
-    Student.prototype.printPreferences = function () {
-        this.preferences.map(function (preference) { return console.log(preference); });
-    };
-    return Student;
-}());
+    }
+    printPreferences() {
+        this.preferences.map((preference) => console.log(preference));
+    }
+}
 exports.Student = Student;
-var Preference = /** @class */ (function () {
-    function Preference(student, shift, available) {
+class Preference {
+    constructor(student, shift, available) {
         this.student = student;
         this.shift = shift;
         this.available = available;
         this.handled = false;
     }
-    return Preference;
-}());
+}
 exports.Preference = Preference;
 // let s1 = new Shift(1, "a");
 // let s2 = new Shift(2, "b");

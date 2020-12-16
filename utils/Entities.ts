@@ -19,6 +19,10 @@ export class Shift implements IShift {
     this.unavailable.push(student);
   }
 
+  isStudentUnavailable(student: IStudent) {
+    return this.unavailable.includes(student);
+  }
+
   printUnavailable() {
     const formated: string[] = this.unavailable.map(
       (student: IStudent) => student.name as string

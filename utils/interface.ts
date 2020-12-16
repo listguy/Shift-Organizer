@@ -5,6 +5,7 @@ export interface IShift {
   chosen: undefined | IStudent;
   assignStudent(student: IStudent): void;
   addUnavailable(student: IStudent): void;
+  isStudentUnavailable(student: IStudent): void;
   printUnavailable(): void;
 }
 
