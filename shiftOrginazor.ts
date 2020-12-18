@@ -82,6 +82,22 @@ function orginizeShifts(students: IStudent[]): IOrganizedShiftDay[] {
   return shifts;
 }
 
+//Min conflicts Algo pseudo code
+/*function MinConflicts(csp:any, max_steps:number) {
+  //csp: 
+  //max_steps: number of steps before giving up
+
+  for(let i=1; i< max_steps; i++) {
+    if current is a solution for csp
+      return current
+    const randomVar = randomly chosen conflicted variable in csp
+    const value = the value for randomVar that minimizes conflicts
+    set var = value in current
+  }
+
+  return failure
+} */
+
 function initShifts(): IOrganizedShiftDay[] {
   return [0, 1, 2, 3, 4, 5, 6].map((day: number) => {
     return {
