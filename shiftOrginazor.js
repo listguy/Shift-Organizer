@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const lodash_1 = require("lodash");
 const Entities_1 = require("./utils/Entities");
 function orginizeShifts(students) {
     // returns 21 organized shifts (for week)
@@ -31,7 +32,7 @@ function orginizeShifts(students) {
     //first, assign all available preferences
     availablePreferences.forEach((pref) => {
         //TODO fix this
-        //@ts-ignore
+        // @ts-ignore
         const desiredShift = shifts[pref.shift.day][pref.shift.time];
         if (desiredShift.chosen)
             return;
@@ -39,7 +40,7 @@ function orginizeShifts(students) {
         pref.handled = true;
         //TODO fix this
         //@ts-ignore
-        numberOfShiftsOfStudent[pref.student];
+        numberOfShiftsOfStudent[pref.student] += 1;
     });
     // assign all unavailable preferences
     unavailablePreferences.forEach((pref) => {
@@ -50,27 +51,100 @@ function orginizeShifts(students) {
         pref.handled = true;
     });
     // assign all other students to shifts
-    shifts.forEach((shiftsDay) => {
-        Object.keys(shiftsDay).forEach((key) => {
-            //TODO fix type
-            //@ts-ignore
-            const currentShift = shiftsDay[key];
-            for (let student of students) {
-                if (currentShift.chosen)
-                    continue;
-                if (currentShift.isStudentUnavailable(student))
-                    continue;
-                if (numberOfShiftsOfStudent[student.name] === 3)
-                    continue;
-                currentShift.assignStudent(student);
-                numberOfShiftsOfStudent[student.name] += 1;
-                break;
+    // old 'dumb' fnnction
+    // shifts.forEach((shiftsDay: IOrganizedShiftDay) => {
+    //   Object.keys(shiftsDay).forEach((key: string) => {
+    //     //TODO fix type
+    //     //@ts-ignore
+    //     const currentShift = shiftsDay[key];
+    //     for (let student of students) {
+    //       if (currentShift.chosen) continue;
+    //       if (currentShift.isStudentUnavailable(student)) continue;
+    //       if (numberOfShiftsOfStudent[student.name] === 3) continue;
+    //       currentShift.assignStudent(student);
+    //       numberOfShiftsOfStudent[student.name] += 1;
+    //       break;
+    //     }
+    //     if (!currentShift.chosen) throw "a Shift with no student! stopping";
+    //   });
+    // });
+    //min conflicts
+    return minConflicts(shifts, 60);
+}
+//Min conflicts Algo pseudo code
+/*function MinConflicts(csp:any, max_steps:number) {
+  //csp:
+  //max_steps: number of steps before giving up
+
+  current = initial assigment for csp
+  for i=1 to max_steps do
+    if current is a solution for csp
+      return current
+    const randomVar = randomly chosen conflicted variable in csp
+    const value = the value for randomVar that minimizes conflicts
+    set var = value in current
+  
+
+  return failure
+} */
+function minConflicts(csp, maxSteps) {
+    let current = csp;
+    for (let i = 1; i < maxSteps; i++) {
+        console.log(i);
+        if (shiftsAreOrganized(current))
+            return current;
+        let VAR = getRandomConflict(csp);
+        let value = minimizeConflictsIn(VAR);
+        VAR.assignStudent(value);
+    }
+    return current;
+}
+function shiftsAreOrganized(currentState) {
+    // checks if current shifts in state are fine organized:
+    // * no students are assigned to shifts where they appear unavailable
+    // * no student has two straight shifts - MISSING
+    // * all shifts are assigned
+    let legal = false;
+    // currentState.forEach((shiftDay: IOrganizedShiftDay) => {
+    for (let shiftDay in currentState) {
+        Object.keys(shiftDay).forEach((key) => {
+            // @ts-ignore
+            let curShift = shiftDay[key];
+            if (!curShift.chosen) {
+                return false;
             }
-            if (!currentShift.chosen)
-                throw "a Shift with no student! stopping";
+            if (curShift.unavailable.includes(curShift.chosen))
+                return false;
         });
+    }
+    // });
+    return true;
+}
+function getRandomConflict(csp) {
+    // get a random unassigned shift
+    const availableShifts = lodash_1.flatMap(csp, (shiftDay) => [
+        shiftDay.morning,
+        shiftDay.noon,
+        shiftDay.evening,
+    ]).filter((shift) => !shift.chosen);
+    return availableShifts[Math.floor(Math.random() * availableShifts.length)];
+}
+function minimizeConflictsIn(conflictedShift) {
+    // assign a student that will minimize the conflicts
+    const conflictsOfStudents = students.map((student) => {
+        return { conflicts: getConflicts(student, conflictedShift), student };
     });
-    return shifts;
+    const leastConflictedStudent = conflictsOfStudents.sort((a, b) => a.conflicts - b.conflicts)[0];
+    return leastConflictedStudent.student;
+}
+function getConflicts(student, shift) {
+    // unavailable for this shift: 3pts
+    // a point for each shift he has
+    let conflictPts = 0;
+    if (shift.unavailable.includes(student))
+        conflictPts += 1;
+    conflictPts += student.shifts.length;
+    return conflictPts;
 }
 function initShifts() {
     return [0, 1, 2, 3, 4, 5, 6].map((day) => {
@@ -103,4 +177,4 @@ const students = names.map((name) => {
     return newStudent;
 });
 console.log(orginizeShifts(students).forEach((day) => console.log(day)));
-// students.forEach((student) => student.printPreferences());
+students.forEach((student) => student.printPreferences());
