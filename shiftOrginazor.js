@@ -69,7 +69,7 @@ function orginizeShifts(students) {
     //   });
     // });
     //min conflicts
-    return minConflicts(shifts, 60);
+    return minConflicts(shifts, 35);
 }
 //Min conflicts Algo pseudo code
 /*function MinConflicts(csp:any, max_steps:number) {
@@ -96,6 +96,7 @@ function minConflicts(csp, maxSteps) {
         let VAR = getRandomConflict(csp);
         let value = minimizeConflictsIn(VAR);
         VAR.assignStudent(value);
+        value.addShift(VAR);
     }
     return current;
 }
@@ -104,29 +105,43 @@ function shiftsAreOrganized(currentState) {
     // * no students are assigned to shifts where they appear unavailable
     // * no student has two straight shifts - MISSING
     // * all shifts are assigned
-    let legal = false;
+    let legal = true;
     // currentState.forEach((shiftDay: IOrganizedShiftDay) => {
     for (let shiftDay in currentState) {
-        Object.keys(shiftDay).forEach((key) => {
+        // Object.keys(shiftDay).forEach((key: string) => {
+        for (let key in Object.keys(shiftDay)) {
             // @ts-ignore
             let curShift = shiftDay[key];
             if (!curShift.chosen) {
-                return false;
+                legal = false;
+                break;
             }
-            if (curShift.unavailable.includes(curShift.chosen))
-                return false;
-        });
+            if (curShift.unavailable.includes(curShift.chosen)) {
+                legal = false;
+                break;
+            }
+        }
+        // });
     }
     // });
-    return true;
+    return legal;
 }
 function getRandomConflict(csp) {
     // get a random unassigned shift
-    const availableShifts = lodash_1.flatMap(csp, (shiftDay) => [
+    let availableShifts = lodash_1.flatMap(csp, (shiftDay) => [
         shiftDay.morning,
         shiftDay.noon,
         shiftDay.evening,
     ]).filter((shift) => !shift.chosen);
+    if (!availableShifts.length) {
+        availableShifts = lodash_1.flatMap(csp, (shiftDay) => [
+            shiftDay.morning,
+            shiftDay.noon,
+            shiftDay.evening,
+        ]).filter((shift) => getConflicts(shift.chosen, shift) >= 3);
+        console.log("happend");
+    }
+    console.log(availableShifts.length);
     return availableShifts[Math.floor(Math.random() * availableShifts.length)];
 }
 function minimizeConflictsIn(conflictedShift) {
@@ -138,12 +153,14 @@ function minimizeConflictsIn(conflictedShift) {
     return leastConflictedStudent.student;
 }
 function getConflicts(student, shift) {
-    // unavailable for this shift: 3pts
+    // 3 pts if unavailable for this shift
     // a point for each shift he has
+    // 2 points for each shift in a row
     let conflictPts = 0;
     if (shift.unavailable.includes(student))
-        conflictPts += 1;
+        conflictPts += 3;
     conflictPts += student.shifts.length;
+    conflictPts += student.shifts.reduce((sum, cShift) => (shift.day === cShift.day ? sum * 2 : sum), 1);
     return conflictPts;
 }
 function initShifts() {
