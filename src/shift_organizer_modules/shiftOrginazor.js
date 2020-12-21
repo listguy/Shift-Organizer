@@ -71,6 +71,7 @@ function orginizeShifts(students) {
     //min conflicts
     return minConflicts(shifts, 35);
 }
+exports.default = orginizeShifts;
 //Min conflicts Algo pseudo code
 /*function MinConflicts(csp:any, max_steps:number) {
   //csp:

@@ -7,7 +7,9 @@ import {
 import { flatMap, flatten } from "lodash";
 import { Preference, Shift, Student } from "./utils/Entities";
 
-function orginizeShifts(students: IStudent[]): IOrganizedShiftDay[] {
+export default function orginizeShifts(
+  students: IStudent[]
+): IOrganizedShiftDay[] {
   // returns 21 organized shifts (for week)
   if (students.length < 7) throw "at least 7 students are needed!";
 
