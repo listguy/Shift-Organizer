@@ -30,6 +30,9 @@ class Student {
     addShift(shift) {
         this.shifts.push(shift);
     }
+    removeShift(shift) {
+        this.shifts = this.shifts.filter((s) => s != shift);
+    }
     printShifts() {
         const formated = this.shifts.map((shift) => {
             return { day: shift.day, time: shift.time };

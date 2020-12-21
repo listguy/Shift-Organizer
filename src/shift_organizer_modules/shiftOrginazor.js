@@ -94,10 +94,13 @@ function minConflicts(csp, maxSteps) {
         console.log(i);
         if (shiftsAreOrganized(current))
             return current;
-        let VAR = getRandomConflict(csp);
-        let value = minimizeConflictsIn(VAR);
-        VAR.assignStudent(value);
-        value.addShift(VAR);
+        let randomConflict = getRandomConflict(csp);
+        let value = minimizeConflictsIn(randomConflict);
+        if (randomConflict.chosen) {
+            randomConflict.chosen.removeShift(randomConflict);
+        }
+        randomConflict.assignStudent(value);
+        value.addShift(randomConflict);
     }
     return current;
 }
@@ -139,7 +142,7 @@ function getRandomConflict(csp) {
             shiftDay.morning,
             shiftDay.noon,
             shiftDay.evening,
-        ]).filter((shift) => getConflicts(shift.chosen, shift) >= 3);
+        ]).filter((shift) => getConflicts(shift.chosen, shift) >= 4);
         console.log("happend");
     }
     console.log(availableShifts.length);
@@ -151,6 +154,7 @@ function minimizeConflictsIn(conflictedShift) {
         return { conflicts: getConflicts(student, conflictedShift), student };
     });
     const leastConflictedStudent = conflictsOfStudents.sort((a, b) => a.conflicts - b.conflicts)[0];
+    console.log(leastConflictedStudent);
     return leastConflictedStudent.student;
 }
 function getConflicts(student, shift) {
@@ -161,7 +165,11 @@ function getConflicts(student, shift) {
     if (shift.unavailable.includes(student))
         conflictPts += 3;
     conflictPts += student.shifts.length;
-    conflictPts += student.shifts.reduce((sum, cShift) => (shift.day === cShift.day ? sum * 2 : sum), 1);
+    conflictPts += student.shifts.reduce((sum, cShift) => shift.day === cShift.day ||
+        shift.day + 1 === cShift.day ||
+        shift.day - 1 === cShift.day
+        ? sum * 2
+        : sum, 2);
     return conflictPts;
 }
 function initShifts() {

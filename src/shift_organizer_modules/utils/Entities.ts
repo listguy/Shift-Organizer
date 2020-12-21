@@ -44,6 +44,10 @@ export class Student implements IStudent {
     this.shifts.push(shift);
   }
 
+  removeShift(shift: IShift) {
+    this.shifts = this.shifts.filter((s: IShift) => s != shift);
+  }
+
   printShifts() {
     const formated: Partial<IShift>[] = this.shifts.map((shift: IShift) => {
       return { day: shift.day, time: shift.time };

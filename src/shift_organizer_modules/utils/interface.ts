@@ -15,6 +15,7 @@ export interface IStudent {
   preferences: IPreference[];
 
   addShift(shift: IShift): void;
+  removeShift(shift: IShift): void;
   printShifts(): void;
   addPreference(preference: IPreference): void;
   printPreferences(): void;

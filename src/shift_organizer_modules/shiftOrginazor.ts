@@ -112,11 +112,14 @@ function minConflicts(
   for (let i = 1; i < maxSteps; i++) {
     console.log(i);
     if (shiftsAreOrganized(current)) return current;
-    let VAR = getRandomConflict(csp);
-    let value = minimizeConflictsIn(VAR);
+    let randomConflict = getRandomConflict(csp);
+    let value = minimizeConflictsIn(randomConflict);
 
-    VAR.assignStudent(value);
-    value.addShift(VAR);
+    if (randomConflict.chosen) {
+      randomConflict.chosen.removeShift(randomConflict);
+    }
+    randomConflict.assignStudent(value);
+    value.addShift(randomConflict);
   }
 
   return current;
@@ -167,7 +170,7 @@ function getRandomConflict(csp: IOrganizedShiftDay[]): IShift {
       shiftDay.morning,
       shiftDay.noon,
       shiftDay.evening,
-    ]).filter((shift: IShift) => getConflicts(shift.chosen!, shift) >= 3);
+    ]).filter((shift: IShift) => getConflicts(shift.chosen!, shift) >= 4);
     console.log("happend");
   }
 
@@ -189,6 +192,7 @@ function minimizeConflictsIn(conflictedShift: IShift): IStudent {
     student: IStudent;
   } = conflictsOfStudents.sort((a, b) => a.conflicts - b.conflicts)[0];
 
+  console.log(leastConflictedStudent);
   return leastConflictedStudent.student;
 }
 
@@ -203,8 +207,13 @@ function getConflicts(student: IStudent, shift: IShift): number {
   conflictPts += student.shifts.length;
 
   conflictPts += student.shifts.reduce(
-    (sum: number, cShift: IShift) => (shift.day === cShift.day ? sum * 2 : sum),
-    1
+    (sum: number, cShift: IShift) =>
+      shift.day === cShift.day ||
+      shift.day + 1 === cShift.day ||
+      shift.day - 1 === cShift.day
+        ? sum * 2
+        : sum,
+    2
   );
 
   return conflictPts;
