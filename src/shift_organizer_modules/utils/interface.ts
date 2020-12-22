@@ -34,7 +34,21 @@ export interface IPreferenceShift {
 }
 
 export interface IOrganizedShiftDay {
-  morning: IShift;
-  noon: IShift;
-  evening: IShift;
+  getMorning(): IShift;
+  getNoon(): IShift;
+  getEvening(): IShift;
+  getAllShifts(): IShift[];
+}
+
+export interface IShiftManager {
+  shifts: IShift[];
+  students: IStudent[];
+  organize(students: IStudent[], weeks: number): IOrganizedShiftDay[]; // remove students from organize
+  addStudent(name: string): void;
+  removeStudent(name: string): void;
+  getStudent(name: string): IStudent;
+  getShift(day: number, time: string): IShift;
+  assignStudentToShift(student: IStudent, shift: IShift): void;
+  addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
+  removePreferenceFromStudent(name: string, shift: IShift): void;
 }

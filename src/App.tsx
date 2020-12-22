@@ -5,7 +5,7 @@ import {
   IPreference,
   IStudent,
 } from "./shift_organizer_modules/utils/interface";
-import shiftOrginazer from "./shift_organizer_modules/shiftOrginazor";
+import ShiftManager from "./shift_organizer_modules/shiftOrginazor";
 
 const names: string[] = [
   "Nitzan",
@@ -36,7 +36,8 @@ const students: IStudent[] = names.map((name: string) => {
   return newStudent;
 });
 
-const shiftsWeek: IOrganizedShiftDay[] = shiftOrginazer(students);
+const sm = new ShiftManager();
+const shiftsWeek: IOrganizedShiftDay[] = sm.organize(students);
 console.log(shiftsWeek);
 
 function App() {
