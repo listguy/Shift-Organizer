@@ -18,6 +18,7 @@ export interface IStudent {
   removeShift(shift: IShift): void;
   printShifts(): void;
   addPreference(preference: IPreference): void;
+  removePreference(shift: IShift): void;
   printPreferences(): void;
 }
 
@@ -46,8 +47,8 @@ export interface IShiftManager {
   organize(students: IStudent[], weeks: number): IOrganizedShiftDay[]; // remove students from organize
   addStudent(name: string): void;
   removeStudent(name: string): void;
-  getStudent(name: string): IStudent;
-  getShift(day: number, time: string): IShift;
+  getStudent(name: string): IStudent | undefined;
+  getShift(day: number, time: string): IShift | undefined;
   assignStudentToShift(student: IStudent, shift: IShift): void;
   addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
   removePreferenceFromStudent(name: string, shift: IShift): void;

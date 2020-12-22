@@ -59,6 +59,18 @@ export class Student implements IStudent {
     this.preferences.push(preference);
   }
 
+  removePreference(shift: IShift): void {
+    const prefIndex: number = this.preferences.findIndex(
+      (pref: IPreference) => pref.shift === shift
+    );
+
+    if (!prefIndex) {
+      throw "Student doe sno have a preference for this shift";
+    }
+
+    this.preferences.splice(prefIndex, 1);
+  }
+
   printPreferences() {
     this.preferences.map((preference: IPreference) => console.log(preference));
   }

@@ -10,33 +10,80 @@ import { Preference, Shift, Student } from "./utils/Entities";
 
 export default class ShiftManager implements IShiftManager {
   students: IStudent[] = [];
+  shifts: IShift[] = [];
+
   addStudent(name: string): void {
-    throw new Error("Method not implemented.");
+    const exist: boolean =
+      this.students.findIndex((student: IStudent) => student.name === name) ===
+      -1;
+
+    if (exist) {
+      throw "Student already exist";
+    }
+
+    const newStudent: IStudent = new Student(name);
+    this.students.push(newStudent);
   }
+
   removeStudent(name: string): void {
-    throw new Error("Method not implemented.");
+    const indexOfStudent = this.students.findIndex(
+      (student: IStudent) => student.name === name
+    );
+
+    if (indexOfStudent === -1) {
+      throw "Student does not exist";
+    }
+
+    this.students.splice(indexOfStudent, 1);
   }
-  getStudent(name: string): IStudent {
-    throw new Error("Method not implemented.");
+
+  getStudent(name: string): IStudent | undefined {
+    return this.students.find((student: IStudent) => student.name === name);
   }
+
   addPreferenceToStudent(
     name: string,
     available: boolean,
     shift: IShift
   ): void {
-    throw new Error("Method not implemented.");
-  }
-  removePreferenceFromStudent(name: string, shift: IShift): void {
-    throw new Error("Method not implemented.");
-  }
-  shifts: IShift[] = [];
+    const student: IStudent | undefined = this.students.find(
+      (student: IStudent) => student.name === name
+    );
 
-  getShift(day: number, time: string): IShift {
-    throw new Error("Method not implemented.");
+    if (!student) {
+      throw "Student does not exist";
+    }
+
+    const newPref: IPreference = new Preference(student, shift, available);
+    student.addPreference(newPref);
   }
+
+  removePreferenceFromStudent(name: string, shift: IShift): void {
+    const student: IStudent | undefined = this.students.find(
+      (student: IStudent) => student.name === name
+    );
+
+    if (!student) {
+      throw "Student does not exist";
+    }
+
+    try {
+      student.removePreference(shift);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  getShift(day: number, time: string): IShift | undefined {
+    return this.shifts.find(
+      (shift: IShift) => shift.day === day && shift.time === time
+    );
+  }
+
   assignStudentToShift(student: IStudent, shift: IShift): void {
-    throw new Error("Method not implemented.");
+    shift.assignStudent(student);
   }
+
   organize(students: IStudent[], weeks: number = 4): IOrganizedShiftDay[] {
     if (students.length < 7) throw "at least 7 students are needed!";
 
