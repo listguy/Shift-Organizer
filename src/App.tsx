@@ -19,7 +19,8 @@ const names: string[] = [
   "Sean",
   "Omri",
 ];
-const getRandomDay: () => number = () => Math.floor(Math.random() * 7);
+const getRandomDay: () => number = () => Math.floor(Math.random() * 7) + 1;
+const getRandomWeek: () => number = () => Math.floor(Math.random() * 4) + 1;
 const getShift: () => string = () =>
   ["morning", "noon", "evening"][Math.floor(Math.random() * 3)];
 const getAvailable: () => boolean = () =>
@@ -29,7 +30,7 @@ const students: IStudent[] = names.map((name: string) => {
   const newStudent: IStudent = new Student(name);
   const pref: IPreference = new Preference(
     newStudent,
-    { day: getRandomDay(), time: getShift() },
+    { day: getRandomDay(), time: getShift(), week: getRandomWeek() },
     getAvailable()
   );
   newStudent.addPreference(pref);
@@ -37,14 +38,21 @@ const students: IStudent[] = names.map((name: string) => {
 });
 
 const sm = new ShiftManager();
-const shiftsWeek: IOrganizedShiftDay[] = sm.organize(students);
-console.log(shiftsWeek);
-
+const shiftMonth: IOrganizedShiftDay[][] = sm.organize(students);
+console.log(shiftMonth);
 function App() {
   return (
     <>
       <h1 style={{ textAlign: "center" }}>This week's shifts</h1>
-      <WeekTable shifts={shiftsWeek} />;<h2>Students Preferences</h2>
+      Week 1
+      <WeekTable shifts={shiftMonth[0]} />
+      Week 2
+      <WeekTable shifts={shiftMonth[1]} />
+      Week 3
+      <WeekTable shifts={shiftMonth[2]} />
+      Week 4
+      <WeekTable shifts={shiftMonth[3]} />
+      <h2>Students Preferences</h2>
       {students.map((student: IStudent) => (
         <li>
           <b>{student.name}</b>,{" "}

@@ -1,5 +1,6 @@
 export interface IShift {
   day: number;
+  week: number;
   time: string;
   unavailable: IStudent[];
   chosen: undefined | IStudent;
@@ -31,6 +32,7 @@ export interface IPreference {
 
 export interface IPreferenceShift {
   day: number;
+  week: number;
   time: string;
 }
 
@@ -39,16 +41,17 @@ export interface IOrganizedShiftDay {
   getNoon(): IShift;
   getEvening(): IShift;
   getAllShifts(): IShift[];
+  getShiftByTime(time: string): IShift | undefined;
 }
 
 export interface IShiftManager {
-  shifts: IShift[];
+  shifts: IOrganizedShiftDay[][];
   students: IStudent[];
-  organize(students: IStudent[], weeks: number): IOrganizedShiftDay[]; // remove students from organize
-  addStudent(name: string): void;
+  organize(students: IStudent[], weeks: number): IOrganizedShiftDay[][]; // remove students from organize
+  addStudent(name: string): IStudent | undefined;
   removeStudent(name: string): void;
   getStudent(name: string): IStudent | undefined;
-  getShift(day: number, time: string): IShift | undefined;
+  getShift(day: number, week: number, time: string): IShift | undefined;
   assignStudentToShift(student: IStudent, shift: IShift): void;
   addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
   removePreferenceFromStudent(name: string, shift: IShift): void;
