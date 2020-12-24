@@ -109,14 +109,16 @@ class ShiftManager {
     }
     initShifts() {
         this.shifts = [0, 1, 2, 3].map((week) => [0, 1, 2, 3, 4, 5, 6].map((day) => {
-            return new Entities_1.OrginizedShiftDay(new Entities_1.Shift(day, week, "morning"), new Entities_1.Shift(day, week, "noon"), new Entities_1.Shift(day, week, "evening"));
+            return day >= 5
+                ? new Entities_1.OrginizedShiftDay(new Entities_1.Shift(day, week, "morning", true), new Entities_1.Shift(day, week, "noon", true), new Entities_1.Shift(day, week, "evening", true))
+                : new Entities_1.OrginizedShiftDay(new Entities_1.Shift(day, week, "morning"), new Entities_1.Shift(day, week, "noon"), new Entities_1.Shift(day, week, "evening"));
         }));
     }
     cloneShifts() {
         // created a copy for min conflicts to work on and modify.
         return this.shifts.map((shiftsWeek) => shiftsWeek.map((shiftsDay) => new Entities_1.OrginizedShiftDay(undefined, undefined, undefined, ...shiftsDay
             .getAllShifts()
-            .map((shift) => new Entities_1.Shift(shift.day, shift.week, shift.time)))));
+            .map((shift) => new Entities_1.Shift(shift.day, shift.week, shift.time, shift.isSpecial)))));
     }
     cloneStudents() {
         return this.students.map((student) => {
@@ -162,7 +164,7 @@ function minConflicts(csp, students, maxSteps) {
 function shiftsAreOrganized(currentState) {
     // checks if current shifts in state are fine organized:
     // * no students are assigned to shifts where they appear unavailable
-    // * no student has two straight shifts - MISSING
+    // * no student has more than 8 conflicts
     // * all shifts are assigned
     let legal = true;
     for (let shiftWeek of currentState) {
@@ -212,11 +214,15 @@ function getConflicts(student, shift) {
     if (shift.unavailable.includes(student))
         conflictPts += 3;
     conflictPts += student.shifts.length;
-    conflictPts += student.shifts.reduce((sum, cShift) => shift.day === cShift.day ||
-        shift.day + 1 === cShift.day ||
-        shift.day - 1 === cShift.day
-        ? sum * 2
-        : sum, 1.5);
+    for (let assignedShift of student.shifts) {
+        if (assignedShift === shift)
+            continue;
+        if (assignedShift.isAdjacent(shift))
+            conflictPts += 15;
+    }
+    if (shift.isSpecial) {
+        conflictPts += student.shifts.reduce((sum, studentShift) => studentShift.isSpecial ? sum + 10 : sum, 0);
+    }
     return conflictPts;
 }
 // function initShifts(): IOrganizedShiftDay[] {

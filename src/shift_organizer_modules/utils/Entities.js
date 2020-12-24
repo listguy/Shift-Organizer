@@ -1,11 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const interface_1 = require("./interface");
 class Shift {
-    constructor(day, week, time) {
+    constructor(day, week, time, special = false) {
         this.unavailable = [];
         this.day = day;
         this.week = week;
         this.time = time;
+        this.isSpecial = special;
+        this.timeStamp =
+            week * interface_1.weekInMs +
+                day * interface_1.dayInMS +
+                interface_1.shiftInMS * (time === "morning" ? 0 : time === "noon" ? 1 : 2);
     }
     assignStudent(student) {
         this.chosen = student;
@@ -19,6 +25,10 @@ class Shift {
     printUnavailable() {
         const formated = this.unavailable.map((student) => student.name);
         console.log(formated);
+    }
+    isAdjacent(otherShift) {
+        return (otherShift.timeStamp === this.timeStamp - interface_1.shiftInMS ||
+            otherShift.timeStamp === this.timeStamp + interface_1.shiftInMS);
     }
 }
 exports.Shift = Shift;

@@ -4,19 +4,30 @@ import {
   IPreference,
   IPreferenceShift,
   IOrganizedShiftDay,
+  weekInMs,
+  dayInMS,
+  shiftInMS,
 } from "./interface";
 
 export class Shift implements IShift {
   day: number;
   week: number;
   time: string;
+  timeStamp: number;
+  isSpecial: boolean;
   unavailable: IStudent[] = [];
   chosen: IStudent | undefined;
 
-  constructor(day: number, week: number, time: string) {
+  constructor(day: number, week: number, time: string, special = false) {
     this.day = day;
     this.week = week;
     this.time = time;
+    this.isSpecial = special;
+
+    this.timeStamp =
+      week * weekInMs +
+      day * dayInMS +
+      shiftInMS * (time === "morning" ? 0 : time === "noon" ? 1 : 2);
   }
 
   assignStudent(student: IStudent) {
@@ -36,6 +47,13 @@ export class Shift implements IShift {
       (student: IStudent) => student.name as string
     );
     console.log(formated);
+  }
+
+  isAdjacent(otherShift: IShift): boolean {
+    return (
+      otherShift.timeStamp === this.timeStamp - shiftInMS ||
+      otherShift.timeStamp === this.timeStamp + shiftInMS
+    );
   }
 }
 

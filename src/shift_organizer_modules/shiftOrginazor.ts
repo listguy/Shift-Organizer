@@ -171,11 +171,17 @@ export default class ShiftManager implements IShiftManager {
   private initShifts(): void {
     this.shifts = [0, 1, 2, 3].map((week: number) =>
       [0, 1, 2, 3, 4, 5, 6].map((day: number) => {
-        return new OrginizedShiftDay(
-          new Shift(day, week, "morning"),
-          new Shift(day, week, "noon"),
-          new Shift(day, week, "evening")
-        );
+        return day >= 5
+          ? new OrginizedShiftDay(
+              new Shift(day, week, "morning", true),
+              new Shift(day, week, "noon", true),
+              new Shift(day, week, "evening", true)
+            )
+          : new OrginizedShiftDay(
+              new Shift(day, week, "morning"),
+              new Shift(day, week, "noon"),
+              new Shift(day, week, "evening")
+            );
       })
     );
   }
@@ -192,7 +198,8 @@ export default class ShiftManager implements IShiftManager {
             ...shiftsDay
               .getAllShifts()
               .map(
-                (shift: IShift) => new Shift(shift.day, shift.week, shift.time)
+                (shift: IShift) =>
+                  new Shift(shift.day, shift.week, shift.time, shift.isSpecial)
               )
           )
       )
@@ -250,7 +257,7 @@ function minConflicts(
 function shiftsAreOrganized(currentState: IOrganizedShiftDay[][]): boolean {
   // checks if current shifts in state are fine organized:
   // * no students are assigned to shifts where they appear unavailable
-  // * no student has two straight shifts - MISSING
+  // * no student has more than 8 conflicts
   // * all shifts are assigned
   let legal = true;
   for (let shiftWeek of currentState) {
@@ -331,15 +338,18 @@ function getConflicts(student: IStudent, shift: IShift): number {
 
   conflictPts += student.shifts.length;
 
-  conflictPts += student.shifts.reduce(
-    (sum: number, cShift: IShift) =>
-      shift.day === cShift.day ||
-      shift.day + 1 === cShift.day ||
-      shift.day - 1 === cShift.day
-        ? sum * 2
-        : sum,
-    1.5
-  );
+  for (let assignedShift of student.shifts) {
+    if (assignedShift === shift) continue;
+    if (assignedShift.isAdjacent(shift)) conflictPts += 15;
+  }
+
+  if (shift.isSpecial) {
+    conflictPts += student.shifts.reduce(
+      (sum: number, studentShift: IShift) =>
+        studentShift.isSpecial ? sum + 10 : sum,
+      0
+    );
+  }
 
   return conflictPts;
 }
