@@ -51,6 +51,8 @@ class Student {
         console.log(formated);
     }
     addPreference(preference) {
+        if (preference instanceof Preference === false)
+            throw new Error(`Expected an object of type Preferene but got ${typeof preference} instead`);
         this.preferences.push(preference);
     }
     removePreference(shift) {

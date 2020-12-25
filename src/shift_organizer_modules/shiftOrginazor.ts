@@ -12,6 +12,7 @@ import {
   Shift,
   Student,
 } from "./utils/Entities";
+import { error } from "console";
 
 export default class ShiftManager implements IShiftManager {
   students: IStudent[] = [];
@@ -23,11 +24,11 @@ export default class ShiftManager implements IShiftManager {
 
   addStudent(name: string): IStudent | undefined {
     const exist: boolean =
-      this.students.findIndex((student: IStudent) => student.name === name) ===
+      this.students.findIndex((student: IStudent) => student.name === name) !==
       -1;
 
     if (exist) {
-      throw "Student already exist";
+      throw new Error("Student already exist");
     }
 
     const newStudent: IStudent = new Student(name);
@@ -41,7 +42,7 @@ export default class ShiftManager implements IShiftManager {
     );
 
     if (indexOfStudent === -1) {
-      throw "Student does not exist";
+      throw new Error("Student does not exist");
     }
 
     this.students.splice(indexOfStudent, 1);
@@ -61,7 +62,7 @@ export default class ShiftManager implements IShiftManager {
     );
 
     if (!student) {
-      throw "Student does not exist";
+      throw new Error("Student does not exist");
     }
 
     const newPref: IPreference = new Preference(student, shift, available);
@@ -74,13 +75,13 @@ export default class ShiftManager implements IShiftManager {
     );
 
     if (!student) {
-      throw "Student does not exist";
+      throw new Error("Student does not exist");
     }
 
     try {
       student.removePreference(shift);
     } catch (e) {
-      throw e;
+      throw new Error(e);
     }
   }
 
@@ -96,7 +97,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   organize(students: IStudent[], weeks: number = 4): IOrganizedShiftDay[][] {
-    // if (students.length < 7) throw "at least 7 students are needed!";
+    // if (students.length < 7) throw new Error("at least 7 students are needed!");
 
     const shifts: IOrganizedShiftDay[][] = this.cloneShifts();
     const availablePreferences: IPreference[] = [];
@@ -165,7 +166,7 @@ export default class ShiftManager implements IShiftManager {
     //min conflicts
     console.log("the shifts!");
     console.log(this.shifts);
-    return minConflicts(shifts, students, 1000);
+    return minConflicts(shifts, students, 200);
   }
 
   private initShifts(): void {

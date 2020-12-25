@@ -9,10 +9,10 @@ class ShiftManager {
         this.initShifts();
     }
     addStudent(name) {
-        const exist = this.students.findIndex((student) => student.name === name) ===
+        const exist = this.students.findIndex((student) => student.name === name) !==
             -1;
         if (exist) {
-            throw "Student already exist";
+            throw new Error("Student already exist");
         }
         const newStudent = new Entities_1.Student(name);
         this.students.push(newStudent);
@@ -21,7 +21,7 @@ class ShiftManager {
     removeStudent(name) {
         const indexOfStudent = this.students.findIndex((student) => student.name === name);
         if (indexOfStudent === -1) {
-            throw "Student does not exist";
+            throw new Error("Student does not exist");
         }
         this.students.splice(indexOfStudent, 1);
     }
@@ -31,7 +31,7 @@ class ShiftManager {
     addPreferenceToStudent(name, available, shift) {
         const student = this.students.find((student) => student.name === name);
         if (!student) {
-            throw "Student does not exist";
+            throw new Error("Student does not exist");
         }
         const newPref = new Entities_1.Preference(student, shift, available);
         student.addPreference(newPref);
@@ -39,13 +39,13 @@ class ShiftManager {
     removePreferenceFromStudent(name, shift) {
         const student = this.students.find((student) => student.name === name);
         if (!student) {
-            throw "Student does not exist";
+            throw new Error("Student does not exist");
         }
         try {
             student.removePreference(shift);
         }
         catch (e) {
-            throw e;
+            throw new Error(e);
         }
     }
     getShift(week, day, time) {
@@ -58,7 +58,7 @@ class ShiftManager {
         shift.assignStudent(student);
     }
     organize(students, weeks = 4) {
-        // if (students.length < 7) throw "at least 7 students are needed!";
+        // if (students.length < 7) throw new Error("at least 7 students are needed!");
         const shifts = this.cloneShifts();
         const availablePreferences = [];
         const unavailablePreferences = [];
@@ -105,7 +105,7 @@ class ShiftManager {
         //min conflicts
         console.log("the shifts!");
         console.log(this.shifts);
-        return minConflicts(shifts, students, 1000);
+        return minConflicts(shifts, students, 200);
     }
     initShifts() {
         this.shifts = [0, 1, 2, 3].map((week) => [0, 1, 2, 3, 4, 5, 6].map((day) => {

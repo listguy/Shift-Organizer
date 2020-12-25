@@ -9,7 +9,7 @@ export default function WeekTable({
 }) {
   return (
     <TableWrapper>
-      {shifts.map((shiftDay: IOrganizedShiftDay, i: number) => (
+      {shifts?.map((shiftDay: IOrganizedShiftDay, i: number) => (
         <TableColumn>
           <h2>{i}</h2>
           <ShiftDay>

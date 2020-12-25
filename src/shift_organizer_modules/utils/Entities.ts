@@ -82,6 +82,10 @@ export class Student implements IStudent {
   }
 
   addPreference(preference: IPreference) {
+    if (preference instanceof Preference === false)
+      throw new Error(
+        `Expected an object of type Preferene but got ${typeof preference} instead`
+      );
     this.preferences.push(preference);
   }
 
