@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const interface_1 = require("./utils/interface");
 const lodash_1 = require("lodash");
 const Entities_1 = require("./utils/Entities");
 class ShiftManager {
@@ -7,6 +8,7 @@ class ShiftManager {
         this.students = [];
         this.shifts = [];
         this.initShifts();
+        this.HeuristicTreshold = 0;
     }
     addStudent(name) {
         const exist = this.students.findIndex((student) => student.name === name) !==
@@ -16,6 +18,7 @@ class ShiftManager {
         }
         const newStudent = new Entities_1.Student(name);
         this.students.push(newStudent);
+        this.HeuristicTreshold = calculateTreshold(this.students.length, this.shifts.length * 7);
         return newStudent;
     }
     removeStudent(name) {
@@ -24,6 +27,7 @@ class ShiftManager {
             throw new Error("Student does not exist");
         }
         this.students.splice(indexOfStudent, 1);
+        this.HeuristicTreshold = calculateTreshold(this.students.length, this.shifts.length * 7);
     }
     getStudent(name) {
         return this.students.find((student) => student.name === name);
@@ -55,7 +59,16 @@ class ShiftManager {
         // return this.shifts.find(
         //   (shift: IShift) => shift.day === day && shift.time === time
         // );
-        return this.shifts[week - 1][day - 1].getShiftByTime(time);
+        if (!this.shifts[week - 1])
+            return undefined;
+        return this.shifts[week - 1][day - 1]?.getShiftByTime(time);
+    }
+    getShiftByStamp(stamp) {
+        const week = Math.floor(stamp / interface_1.weekInMs);
+        const day = Math.floor((stamp - interface_1.weekInMs * week) / interface_1.dayInMS);
+        const shiftIndex = Math.floor((stamp - week * interface_1.weekInMs - day * interface_1.dayInMS) / interface_1.shiftInMS);
+        const time = shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
+        return this.getShift(week + 1, day + 1, time);
     }
     getAllShifts() {
         return this.shifts.slice();
@@ -64,12 +77,8 @@ class ShiftManager {
         shift.assignStudent(student);
     }
     organize() {
-        // if (students.length < 7) throw new Error("at least 7 students are needed!");
         const shifts = this.shifts;
         const students = this.students;
-        // console.log(students);
-        // console.log(this.getAllStudents());
-        // console.log(shifts);
         const availablePreferences = [];
         const unavailablePreferences = [];
         // will help to keep track of the students number of shifts
@@ -112,11 +121,9 @@ class ShiftManager {
             pref.handled = true;
         });
         // assign all other students to shifts
-        //min conflicts
-        // console.log("the shifts!");
-        // console.log(this.shifts);
-        const organizedShifts = minConflicts(shifts, students, 200);
+        const organizedShifts = minConflicts(shifts, students, 1000, this.HeuristicTreshold, this);
         this.shifts = organizedShifts;
+        console.log(this.HeuristicTreshold);
         return organizedShifts;
     }
     initShifts() {
@@ -156,14 +163,13 @@ exports.default = ShiftManager;
 
   return failure
 } */
-function minConflicts(csp, students, maxSteps) {
+function minConflicts(csp, students, maxSteps, treshold, SM) {
     let current = csp;
     for (let i = 1; i < maxSteps; i++) {
-        // debugger;
-        // console.log(i);
-        if (shiftsAreOrganized(current))
+        console.log(i);
+        if (shiftsAreOrganized(current, treshold, SM))
             return current;
-        let randomConflict = getRandomConflict(csp);
+        let randomConflict = getRandomConflict(csp, treshold);
         let value = minimizeConflictsIn(randomConflict, students);
         if (randomConflict.chosen) {
             randomConflict.chosen.removeShift(randomConflict);
@@ -173,11 +179,8 @@ function minConflicts(csp, students, maxSteps) {
     }
     return current;
 }
-function shiftsAreOrganized(currentState) {
+function shiftsAreOrganized(currentState, treshold, SM) {
     // checks if current shifts in state are fine organized:
-    // * no students are assigned to shifts where they appear unavailable
-    // * no student has more than 8 conflicts
-    // * all shifts are assigned
     let legal = true;
     for (let shiftWeek of currentState) {
         for (let shiftDay of shiftWeek) {
@@ -186,11 +189,10 @@ function shiftsAreOrganized(currentState) {
                     legal = false;
                     break;
                 }
-                if (curShift.unavailable.includes(curShift.chosen)) {
-                    legal = false;
-                    break;
-                }
-                if (getConflicts(curShift.chosen, curShift) >= 5) {
+                const nextShift = SM.getShiftByStamp(curShift.timeStamp + interface_1.shiftInMS);
+                const prevShift = SM.getShiftByStamp(curShift.timeStamp - interface_1.shiftInMS);
+                if (curShift.hasSameStudent(nextShift) ||
+                    curShift.hasSameStudent(prevShift)) {
                     legal = false;
                     break;
                 }
@@ -199,44 +201,71 @@ function shiftsAreOrganized(currentState) {
     }
     return legal;
 }
-function getRandomConflict(csp) {
+function getRandomConflict(csp, treshold) {
     // get a random unassigned shift
     let availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift) => !shift.chosen);
     if (!availableShifts.length) {
-        availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift) => getConflicts(shift.chosen, shift) >= 4.5);
-        // console.log("happend");
+        availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift, index, shiftsArr) => shift.hasSameStudent(shiftsArr[index + 1]) ||
+            shift.hasSameStudent(shiftsArr[index - 1]));
     }
-    // console.log(availableShifts.length);
+    if (availableShifts.length === 0) {
+        console.log("Should have quit!");
+    }
     return availableShifts[Math.floor(Math.random() * availableShifts.length)];
 }
 function minimizeConflictsIn(conflictedShift, students) {
     // assign a student that will minimize the conflicts
     const conflictsOfStudents = students.map((student) => {
-        return { conflicts: getConflicts(student, conflictedShift), student };
+        return { conflicts: getConflictsWith(student, conflictedShift), student };
     });
     const leastConflictedStudent = conflictsOfStudents.sort((a, b) => a.conflicts - b.conflicts)[0];
-    // console.log(leastConflictedStudent);
+    console.log(leastConflictedStudent);
     return leastConflictedStudent.student;
 }
-function getConflicts(student, shift) {
-    // 3 pts if unavailable for this shift
-    // a point for each shift he has
-    // 2 points for each shift in a row
-    let conflictPts = 0;
-    if (shift.unavailable.includes(student))
-        conflictPts += 3;
-    conflictPts += student.shifts.length;
-    for (let assignedShift of student.shifts) {
-        if (assignedShift === shift)
-            continue;
-        if (assignedShift.isAdjacent(shift))
-            conflictPts += 15;
+function getConflictsWith(student, shift) {
+    if (!shift) {
+        console.log("Whatttttttttttttttttttttttttt");
+        return 100;
     }
-    if (shift.isSpecial) {
-        conflictPts += student.shifts.reduce((sum, studentShift) => studentShift.isSpecial ? sum + 10 : sum, 0);
+    // sum of shift count between the student's shifts
+    if (student.shifts.length <= 1) {
+        return shift.isAdjacent(student.shifts[0]) ? 1 : 0;
     }
-    return conflictPts;
+    const distanceBetweenShifts = student.shifts
+        .map((shift) => shift.timeStamp)
+        .concat(shift.timeStamp)
+        .sort((a, b) => a - b)
+        .reduce((sum, curShiftTime, index, shiftsArr) => {
+        // console.log(shiftsArr);
+        if (index === shiftsArr.length - 1)
+            return sum;
+        return sum + (shiftsArr[index + 1] - curShiftTime) / interface_1.shiftInMS;
+    }, 0);
+    return 1 / (distanceBetweenShifts / student.shifts.length);
 }
+function evaluateCurrentShiftsOf(student) {
+    if (student.shifts.length <= 1)
+        return 1;
+    return (1 /
+        student.shifts
+            .map((shift) => shift.timeStamp)
+            .sort((a, b) => a - b)
+            .reduce((sum, curShiftTime, index, shiftsArr) => {
+            // console.log(shiftsArr);
+            if (index === shiftsArr.length - 1)
+                return sum;
+            return sum + (shiftsArr[index + 1] - curShiftTime) / interface_1.shiftInMS;
+        }, 0));
+}
+function calculateTreshold(sumStudents, sumShifts) {
+    // return (
+    //   1 /
+    //   ((sumStudents * (Math.floor(sumShifts / sumStudents) - 1)) /
+    //     (Math.floor(sumShifts / sumStudents) + 1))
+    // );
+    return 1 / (sumStudents - 1);
+}
+//#region nothing to see here ...
 // function initShifts(): IOrganizedShiftDay[] {
 //   class OrginizedShiftDay implements IOrganizedShiftDay {
 //     private morning: IShift;
@@ -309,3 +338,4 @@ function getConflicts(student, shift) {
 // const sm = new ShiftManager();
 // console.log(sm.organize(students, 3).forEach((day) => console.log(day)));
 // students.forEach((student) => student.printPreferences());
+//#endregion

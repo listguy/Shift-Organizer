@@ -49,11 +49,17 @@ export class Shift implements IShift {
     console.log(formated);
   }
 
-  isAdjacent(otherShift: IShift): boolean {
+  isAdjacent(otherShift: IShift | undefined): boolean {
+    if (otherShift instanceof Shift === false) return false;
     return (
-      otherShift.timeStamp === this.timeStamp - shiftInMS ||
-      otherShift.timeStamp === this.timeStamp + shiftInMS
+      otherShift!.timeStamp === this.timeStamp - shiftInMS ||
+      otherShift!.timeStamp === this.timeStamp + shiftInMS
     );
+  }
+
+  hasSameStudent(otherShift: IShift | undefined): boolean {
+    if (otherShift instanceof Shift === false) return false;
+    return otherShift!.chosen === this.chosen;
   }
 }
 

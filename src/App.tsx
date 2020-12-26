@@ -30,18 +30,19 @@ const getShift: () => string = () =>
 const getAvailable: () => boolean = () =>
   Boolean(Math.floor(Math.random() * 2));
 
-const students: IStudent[] = names.map((name: string) => {
-  const newStudent: IStudent = new Student(name);
+const SM = new ShiftManager();
+
+// const students: IStudent[] =
+names.map((name: string) => {
+  const newStudent: IStudent = SM.addStudent(name)!;
   const pref: IPreference = new Preference(
     newStudent,
     { day: getRandomDay(), time: getShift(), week: getRandomWeek() },
     getAvailable()
   );
-  newStudent.addPreference(pref);
-  return newStudent;
+  // newStudent.addPreference(pref);
 });
 
-const SM = new ShiftManager();
 console.log("New SM");
 // const shiftMonth: IOrganizedShiftDay[][] = SM.organize(students);
 // console.log(shiftMonth);
@@ -81,12 +82,15 @@ function App() {
           setShiftState(SM.getAllShifts());
         }
       });
+    } else {
+      SM.organize();
+      setShiftState(SM.getAllShifts());
     }
   };
 
-  useEffect(() => {
-    addStudent("Nitzan");
-  }, []);
+  // useEffect(() => {
+  //   addStudent("Nitzan");
+  // }, []);
 
   return (
     <>

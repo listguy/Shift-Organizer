@@ -9,7 +9,8 @@ export interface IShift {
   assignStudent(student: IStudent): void;
   addUnavailable(student: IStudent): void;
   isStudentUnavailable(student: IStudent): void;
-  isAdjacent(otherShift: IShift): boolean;
+  isAdjacent(otherShift: IShift | undefined): boolean;
+  hasSameStudent(otherShift: IShift | undefined): boolean;
   printUnavailable(): void;
 }
 
@@ -50,19 +51,21 @@ export interface IOrganizedShiftDay {
 export interface IShiftManager {
   shifts: IOrganizedShiftDay[][];
   students: IStudent[];
+  HeuristicTreshold: number;
   organize(): IOrganizedShiftDay[][]; // remove students from organize
   addStudent(name: string): IStudent | undefined;
   removeStudent(name: string): void;
   getStudent(name: string): IStudent | undefined;
   getAllStudents(): IStudent[];
   getShift(day: number, week: number, time: string): IShift | undefined;
+  getShiftByStamp(timestamp: number): IShift | undefined;
   getAllShifts(): IOrganizedShiftDay[][];
   assignStudentToShift(student: IStudent, shift: IShift): void;
   addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
   removePreferenceFromStudent(name: string, shift: IShift): void;
 }
 
-export const hourInMS = 100 * 60 * 60;
+export const hourInMS = 1000 * 60 * 60;
 export const dayInMS = 24 * hourInMS;
 export const weekInMs = 7 * dayInMS;
 export const shiftInMS = 8 * hourInMS;

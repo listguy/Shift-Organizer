@@ -27,8 +27,15 @@ class Shift {
         console.log(formated);
     }
     isAdjacent(otherShift) {
+        if (otherShift instanceof Shift === false)
+            return false;
         return (otherShift.timeStamp === this.timeStamp - interface_1.shiftInMS ||
             otherShift.timeStamp === this.timeStamp + interface_1.shiftInMS);
+    }
+    hasSameStudent(otherShift) {
+        if (otherShift instanceof Shift === false)
+            return false;
+        return otherShift.chosen === this.chosen;
     }
 }
 exports.Shift = Shift;
