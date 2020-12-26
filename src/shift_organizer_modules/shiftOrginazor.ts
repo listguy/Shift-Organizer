@@ -52,6 +52,10 @@ export default class ShiftManager implements IShiftManager {
     return this.students.find((student: IStudent) => student.name === name);
   }
 
+  getAllStudents(): IStudent[] {
+    return this.students.slice();
+  }
+
   addPreferenceToStudent(
     name: string,
     available: boolean,
@@ -92,14 +96,22 @@ export default class ShiftManager implements IShiftManager {
     return this.shifts[week - 1][day - 1].getShiftByTime(time);
   }
 
+  getAllShifts(): IOrganizedShiftDay[][] {
+    return this.shifts.slice();
+  }
+
   assignStudentToShift(student: IStudent, shift: IShift): void {
     shift.assignStudent(student);
   }
 
-  organize(students: IStudent[], weeks: number = 4): IOrganizedShiftDay[][] {
+  organize(): IOrganizedShiftDay[][] {
     // if (students.length < 7) throw new Error("at least 7 students are needed!");
 
-    const shifts: IOrganizedShiftDay[][] = this.cloneShifts();
+    const shifts: IOrganizedShiftDay[][] = this.shifts;
+    const students: IStudent[] = this.students;
+    // console.log(students);
+    // console.log(this.getAllStudents());
+    // console.log(shifts);
     const availablePreferences: IPreference[] = [];
     const unavailablePreferences: IPreference[] = [];
     // will help to keep track of the students number of shifts
@@ -164,9 +176,15 @@ export default class ShiftManager implements IShiftManager {
 
     // assign all other students to shifts
     //min conflicts
-    console.log("the shifts!");
-    console.log(this.shifts);
-    return minConflicts(shifts, students, 200);
+    // console.log("the shifts!");
+    // console.log(this.shifts);
+    const organizedShifts: IOrganizedShiftDay[][] = minConflicts(
+      shifts,
+      students,
+      200
+    );
+    this.shifts = organizedShifts;
+    return organizedShifts;
   }
 
   private initShifts(): void {
@@ -240,7 +258,7 @@ function minConflicts(
 
   for (let i = 1; i < maxSteps; i++) {
     // debugger;
-    console.log(i);
+    // console.log(i);
     if (shiftsAreOrganized(current)) return current;
     let randomConflict = getRandomConflict(csp);
     let value = minimizeConflictsIn(randomConflict, students);
@@ -301,10 +319,10 @@ function getRandomConflict(csp: IOrganizedShiftDay[][]): IShift {
       2
     ).filter((shift: IShift) => getConflicts(shift.chosen!, shift) >= 4.5);
 
-    console.log("happend");
+    // console.log("happend");
   }
 
-  console.log(availableShifts.length);
+  // console.log(availableShifts.length);
   return availableShifts[Math.floor(Math.random() * availableShifts.length)];
 }
 
@@ -325,7 +343,7 @@ function minimizeConflictsIn(
     student: IStudent;
   } = conflictsOfStudents.sort((a, b) => a.conflicts - b.conflicts)[0];
 
-  console.log(leastConflictedStudent);
+  // console.log(leastConflictedStudent);
   return leastConflictedStudent.student;
 }
 

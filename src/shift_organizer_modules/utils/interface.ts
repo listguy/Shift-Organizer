@@ -50,11 +50,13 @@ export interface IOrganizedShiftDay {
 export interface IShiftManager {
   shifts: IOrganizedShiftDay[][];
   students: IStudent[];
-  organize(students: IStudent[], weeks: number): IOrganizedShiftDay[][]; // remove students from organize
+  organize(): IOrganizedShiftDay[][]; // remove students from organize
   addStudent(name: string): IStudent | undefined;
   removeStudent(name: string): void;
   getStudent(name: string): IStudent | undefined;
+  getAllStudents(): IStudent[];
   getShift(day: number, week: number, time: string): IShift | undefined;
+  getAllShifts(): IOrganizedShiftDay[][];
   assignStudentToShift(student: IStudent, shift: IShift): void;
   addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
   removePreferenceFromStudent(name: string, shift: IShift): void;

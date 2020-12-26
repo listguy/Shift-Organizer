@@ -8,6 +8,8 @@ import {
 } from "./shift_organizer_modules/utils/interface";
 import ShiftManager from "./shift_organizer_modules/shiftOrginazor";
 import { useEffect, useState } from "react";
+import AddStudent from "./components/AddStudent";
+import Swal, { SweetAlertResult } from "sweetalert2";
 
 const names: string[] = [
   "Nitzan",
@@ -44,33 +46,52 @@ console.log("New SM");
 // const shiftMonth: IOrganizedShiftDay[][] = SM.organize(students);
 // console.log(shiftMonth);
 function App() {
-  const [students, setStudents] = useState<IStudent[]>(SM.students);
+  const [students, setStudents] = useState<IStudent[]>(SM.getAllStudents());
   const [shiftsState, setShiftState] = useState<IOrganizedShiftDay[][]>(
-    SM.shifts
+    SM.getAllShifts()
   );
 
   // Adds a new student to the shift Manager
-  const addStudent: (name: string, sm?: IShiftManager) => IStudent | void = (
+  const addStudent: (name: string, sm?: IShiftManager) => IStudent | boolean = (
     name: string,
     sm: IShiftManager = SM
   ) => {
     try {
       const newStudent: IStudent = sm.addStudent(name)!;
-      setStudents((prev: IStudent[]) => prev.concat([newStudent]));
+      setStudents(sm.getAllStudents());
       return newStudent;
     } catch (e) {
-      alert("Student with this name already exists!");
+      return false;
+    }
+  };
+
+  const organizeShifts: () => void = () => {
+    if (students.length < 7) {
+      Swal.fire({
+        title: "Hey!",
+        text: `Only ${students.length} ${
+          students.length > 1 ? "students are" : "student is"
+        } saved in the system. Procceed?`,
+        showDenyButton: true,
+        confirmButtonText: "Yes",
+        denyButtonText: "No",
+      }).then((result: SweetAlertResult) => {
+        if (result.isConfirmed) {
+          SM.organize();
+          setShiftState(SM.getAllShifts());
+        }
+      });
     }
   };
 
   useEffect(() => {
-    //@ts-ignore
     addStudent("Nitzan");
   }, []);
 
   return (
     <>
-      <button onClick={() => addStudent("Asaf")}>Please do not fuck up</button>
+      <AddStudent addFunction={addStudent} />
+      <button onClick={organizeShifts}>Organize!</button>
       <h1 style={{ textAlign: "center" }}>This week's shifts</h1>
       <h2>Available Students</h2>
       <div>

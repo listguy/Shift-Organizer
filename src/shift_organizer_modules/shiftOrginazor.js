@@ -28,6 +28,9 @@ class ShiftManager {
     getStudent(name) {
         return this.students.find((student) => student.name === name);
     }
+    getAllStudents() {
+        return this.students.slice();
+    }
     addPreferenceToStudent(name, available, shift) {
         const student = this.students.find((student) => student.name === name);
         if (!student) {
@@ -54,12 +57,19 @@ class ShiftManager {
         // );
         return this.shifts[week - 1][day - 1].getShiftByTime(time);
     }
+    getAllShifts() {
+        return this.shifts.slice();
+    }
     assignStudentToShift(student, shift) {
         shift.assignStudent(student);
     }
-    organize(students, weeks = 4) {
+    organize() {
         // if (students.length < 7) throw new Error("at least 7 students are needed!");
-        const shifts = this.cloneShifts();
+        const shifts = this.shifts;
+        const students = this.students;
+        // console.log(students);
+        // console.log(this.getAllStudents());
+        // console.log(shifts);
         const availablePreferences = [];
         const unavailablePreferences = [];
         // will help to keep track of the students number of shifts
@@ -103,9 +113,11 @@ class ShiftManager {
         });
         // assign all other students to shifts
         //min conflicts
-        console.log("the shifts!");
-        console.log(this.shifts);
-        return minConflicts(shifts, students, 200);
+        // console.log("the shifts!");
+        // console.log(this.shifts);
+        const organizedShifts = minConflicts(shifts, students, 200);
+        this.shifts = organizedShifts;
+        return organizedShifts;
     }
     initShifts() {
         this.shifts = [0, 1, 2, 3].map((week) => [0, 1, 2, 3, 4, 5, 6].map((day) => {
@@ -148,7 +160,7 @@ function minConflicts(csp, students, maxSteps) {
     let current = csp;
     for (let i = 1; i < maxSteps; i++) {
         // debugger;
-        console.log(i);
+        // console.log(i);
         if (shiftsAreOrganized(current))
             return current;
         let randomConflict = getRandomConflict(csp);
@@ -192,9 +204,9 @@ function getRandomConflict(csp) {
     let availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift) => !shift.chosen);
     if (!availableShifts.length) {
         availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift) => getConflicts(shift.chosen, shift) >= 4.5);
-        console.log("happend");
+        // console.log("happend");
     }
-    console.log(availableShifts.length);
+    // console.log(availableShifts.length);
     return availableShifts[Math.floor(Math.random() * availableShifts.length)];
 }
 function minimizeConflictsIn(conflictedShift, students) {
@@ -203,7 +215,7 @@ function minimizeConflictsIn(conflictedShift, students) {
         return { conflicts: getConflicts(student, conflictedShift), student };
     });
     const leastConflictedStudent = conflictsOfStudents.sort((a, b) => a.conflicts - b.conflicts)[0];
-    console.log(leastConflictedStudent);
+    // console.log(leastConflictedStudent);
     return leastConflictedStudent.student;
 }
 function getConflicts(student, shift) {
