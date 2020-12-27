@@ -98,7 +98,9 @@ export class Student implements IStudent {
         (pref: IPreference) => pref.shiftTimeStamp === preference.shiftTimeStamp
       )
     ) {
-      throw new Error(`Preference already exists for this student`);
+      throw new Error(
+        `A Preference in this time already exists for this student`
+      );
     }
     this.preferences.push(preference);
     return true;

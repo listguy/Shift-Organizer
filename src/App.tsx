@@ -73,7 +73,7 @@ function App() {
     shiftTimeStamp: number,
     available?: boolean,
     sm?: IShiftManager
-  ) => boolean | string = (
+  ) => boolean | Error = (
     studentName: string,
     shiftTimeStamp: number,
     available: boolean = true,

@@ -61,7 +61,7 @@ class Student {
         if (preference instanceof Preference === false)
             throw new Error(`Expected an object of type Preferene but got ${typeof preference} instead`);
         if (this.preferences.find((pref) => pref.shiftTimeStamp === preference.shiftTimeStamp)) {
-            throw new Error(`Preference already exists for this student`);
+            throw new Error(`A Preference in this time already exists for this student`);
         }
         this.preferences.push(preference);
         return true;
