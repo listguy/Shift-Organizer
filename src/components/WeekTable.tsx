@@ -9,26 +9,26 @@ export default function WeekTable({
 }) {
   return (
     <TableWrapper>
-      {shifts.map((shiftDay: IOrganizedShiftDay, i: number) => (
+      {shifts?.map((shiftDay: IOrganizedShiftDay, i: number) => (
         <TableColumn>
           <h2>{i}</h2>
           <ShiftDay>
             <span>
               <b>morning</b>
             </span>
-            {shiftDay?.morning?.chosen?.name}
+            {shiftDay?.getMorning()?.chosen?.name}
           </ShiftDay>
           <ShiftDay>
             <span>
               <b>noon</b>
             </span>
-            {shiftDay?.noon?.chosen?.name}
+            {shiftDay?.getNoon()?.chosen?.name}
           </ShiftDay>
           <ShiftDay>
             <span>
               <b>evening</b>
             </span>
-            {shiftDay?.evening?.chosen?.name}
+            {shiftDay?.getEvening()?.chosen?.name}
           </ShiftDay>
         </TableColumn>
       ))}{" "}
