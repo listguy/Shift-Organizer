@@ -35,24 +35,41 @@ class ShiftManager {
     getAllStudents() {
         return this.students.slice();
     }
-    addPreferenceToStudent(name, available, shift) {
+    addPreferenceToStudent(name, available, shiftTimestamp) {
         const student = this.students.find((student) => student.name === name);
         if (!student) {
             throw new Error("Student does not exist");
         }
-        const newPref = new Entities_1.Preference(student, shift, available);
-        student.addPreference(newPref);
-    }
-    removePreferenceFromStudent(name, shift) {
-        const student = this.students.find((student) => student.name === name);
-        if (!student) {
-            throw new Error("Student does not exist");
+        if (shiftTimestamp < 0 ||
+            shiftTimestamp > 4 * interface_1.weekInMs ||
+            shiftTimestamp % interface_1.shiftInMS !== 0) {
+            throw new Error(`Timestamp is ilegal. Check it is positive, not larger than ${4 * interface_1.weekInMs} and points to the begining of the shift`);
         }
+        const newPref = new Entities_1.Preference(student, shiftTimestamp, available);
         try {
-            student.removePreference(shift);
+            student.addPreference(newPref);
+            return true;
         }
         catch (e) {
-            throw new Error(e);
+            throw e;
+        }
+    }
+    removePreferenceFromStudent(name, shiftToRemoveTimestamp) {
+        const student = this.students.find((student) => student.name === name);
+        if (!student) {
+            throw new Error("Student does not exist");
+        }
+        if (shiftToRemoveTimestamp < 0 ||
+            shiftToRemoveTimestamp > 4 * interface_1.weekInMs ||
+            shiftToRemoveTimestamp % interface_1.shiftInMS !== 0) {
+            throw new Error(`Timestamp is ilegal. Check it is positive, not larger than ${4 * interface_1.weekInMs} and points to the begining of the shift`);
+        }
+        try {
+            student.removePreference(shiftToRemoveTimestamp);
+            return true;
+        }
+        catch (e) {
+            throw e;
         }
     }
     getShift(week, day, time) {
@@ -103,8 +120,8 @@ class ShiftManager {
         }));
         //first, assign all available preferences
         availablePreferences.forEach((pref) => {
-            const { week, day, time, } = pref.shift;
-            const desiredShift = shifts[week - 1][day - 1].getShiftByTime(time);
+            const { week, day, time, } = pref.getPrettyTime();
+            const desiredShift = shifts[week][day].getShiftByTime(time);
             if (desiredShift.chosen)
                 return;
             desiredShift.assignStudent(pref.student);
@@ -115,8 +132,8 @@ class ShiftManager {
         });
         // assign all unavailable preferences
         unavailablePreferences.forEach((pref) => {
-            const { week, day, time, } = pref.shift;
-            const undesiredShift = shifts[week - 1][day - 1].getShiftByTime(time);
+            const { week, day, time, } = pref.getPrettyTime();
+            const undesiredShift = shifts[week][day].getShiftByTime(time);
             undesiredShift.addUnavailable(pref.student);
             pref.handled = true;
         });

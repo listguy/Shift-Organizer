@@ -22,16 +22,19 @@ export interface IStudent {
   addShift(shift: IShift): void;
   removeShift(shift: IShift): void;
   printShifts(): void;
-  addPreference(preference: IPreference): void;
-  removePreference(shift: IShift): void;
+  addPreference(preference: IPreference): boolean | void;
+  removePreference(shiftToRemoveTimestamp: number): void;
+  getPreferences(): IPreference[];
   printPreferences(): void;
 }
 
 export interface IPreference {
   student: IStudent;
   available: boolean;
-  shift: IPreferenceShift;
+  shiftTimeStamp: number;
   handled: boolean;
+
+  getPrettyTime(): IPreferenceShift;
 }
 
 export interface IPreferenceShift {
@@ -61,8 +64,15 @@ export interface IShiftManager {
   getShiftByStamp(timestamp: number): IShift | undefined;
   getAllShifts(): IOrganizedShiftDay[][];
   assignStudentToShift(student: IStudent, shift: IShift): void;
-  addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
-  removePreferenceFromStudent(name: string, shift: IShift): void;
+  addPreferenceToStudent(
+    name: string,
+    available: boolean,
+    shiftTimeStamp: number
+  ): void | boolean;
+  removePreferenceFromStudent(
+    name: string,
+    shiftTimeStamp: number
+  ): void | boolean;
 }
 
 export const hourInMS = 1000 * 60 * 60;

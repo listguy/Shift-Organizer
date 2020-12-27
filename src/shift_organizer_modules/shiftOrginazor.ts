@@ -15,7 +15,7 @@ import {
   Shift,
   Student,
 } from "./utils/Entities";
-import { debug, error } from "console";
+import { debug, error, timeStamp } from "console";
 
 export default class ShiftManager implements IShiftManager {
   students: IStudent[] = [];
@@ -74,8 +74,8 @@ export default class ShiftManager implements IShiftManager {
   addPreferenceToStudent(
     name: string,
     available: boolean,
-    shift: IShift
-  ): void {
+    shiftTimestamp: number
+  ): void | boolean {
     const student: IStudent | undefined = this.students.find(
       (student: IStudent) => student.name === name
     );
@@ -84,23 +84,60 @@ export default class ShiftManager implements IShiftManager {
       throw new Error("Student does not exist");
     }
 
-    const newPref: IPreference = new Preference(student, shift, available);
-    student.addPreference(newPref);
+    if (
+      shiftTimestamp < 0 ||
+      shiftTimestamp > 4 * weekInMs ||
+      shiftTimestamp % shiftInMS !== 0
+    ) {
+      throw new Error(
+        `Timestamp is ilegal. Check it is positive, not larger than ${
+          4 * weekInMs
+        } and points to the begining of the shift`
+      );
+    }
+
+    const newPref: IPreference = new Preference(
+      student,
+      shiftTimestamp,
+      available
+    );
+    try {
+      student.addPreference(newPref);
+      return true;
+    } catch (e) {
+      throw e;
+    }
   }
 
-  removePreferenceFromStudent(name: string, shift: IShift): void {
+  removePreferenceFromStudent(
+    name: string,
+    shiftToRemoveTimestamp: number
+  ): void | boolean {
     const student: IStudent | undefined = this.students.find(
       (student: IStudent) => student.name === name
     );
 
     if (!student) {
       throw new Error("Student does not exist");
+    }
+
+    if (
+      shiftToRemoveTimestamp < 0 ||
+      shiftToRemoveTimestamp > 4 * weekInMs ||
+      shiftToRemoveTimestamp % shiftInMS !== 0
+    ) {
+      throw new Error(
+        `Timestamp is ilegal. Check it is positive, not larger than ${
+          4 * weekInMs
+        } and points to the begining of the shift`
+      );
     }
 
     try {
-      student.removePreference(shift);
+      student.removePreference(shiftToRemoveTimestamp);
+      return true;
     } catch (e) {
-      throw new Error(e);
+      throw e;
     }
   }
 
@@ -169,11 +206,9 @@ export default class ShiftManager implements IShiftManager {
         week,
         day,
         time,
-      }: { week: number; day: number; time: string } = pref.shift;
+      }: { week: number; day: number; time: string } = pref.getPrettyTime();
 
-      const desiredShift: IShift = shifts[week - 1][day - 1].getShiftByTime(
-        time
-      )!;
+      const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
       if (desiredShift.chosen) return;
       desiredShift.assignStudent(pref.student);
       pref.handled = true;
@@ -188,11 +223,9 @@ export default class ShiftManager implements IShiftManager {
         week,
         day,
         time,
-      }: { week: number; day: number; time: string } = pref.shift;
+      }: { week: number; day: number; time: string } = pref.getPrettyTime();
 
-      const undesiredShift: IShift = shifts[week - 1][day - 1].getShiftByTime(
-        time
-      )!;
+      const undesiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
       undesiredShift.addUnavailable(pref.student);
       pref.handled = true;
     });

@@ -92,19 +92,32 @@ export class Student implements IStudent {
       throw new Error(
         `Expected an object of type Preferene but got ${typeof preference} instead`
       );
+
+    if (
+      this.preferences.find(
+        (pref: IPreference) => pref.shiftTimeStamp === preference.shiftTimeStamp
+      )
+    ) {
+      throw new Error(`Preference already exists for this student`);
+    }
     this.preferences.push(preference);
+    return true;
   }
 
-  removePreference(shift: IShift): void {
+  removePreference(shiftToRemoveTimestamp: number): void {
     const prefIndex: number = this.preferences.findIndex(
-      (pref: IPreference) => pref.shift === shift
+      (pref: IPreference) => pref.shiftTimeStamp === shiftToRemoveTimestamp
     );
 
     if (!prefIndex) {
-      throw "Student doe sno have a preference for this shift";
+      throw new Error("Student does not have a preference for this shift");
     }
 
     this.preferences.splice(prefIndex, 1);
+  }
+
+  getPreferences(): IPreference[] {
+    return this.preferences.slice();
   }
 
   printPreferences() {
@@ -114,15 +127,29 @@ export class Student implements IStudent {
 
 export class Preference implements IPreference {
   student: IStudent;
-  shift: IPreferenceShift;
+  shiftTimeStamp: number;
   available: boolean;
   handled: boolean;
 
-  constructor(student: IStudent, shift: IPreferenceShift, available: boolean) {
+  constructor(student: IStudent, shiftTimeStamp: number, available: boolean) {
     this.student = student;
-    this.shift = shift;
+    this.shiftTimeStamp = shiftTimeStamp;
     this.available = available;
     this.handled = false;
+  }
+
+  getPrettyTime() {
+    const week: number = Math.floor(this.shiftTimeStamp / weekInMs);
+    const day: number = Math.floor(
+      (this.shiftTimeStamp - weekInMs * week) / dayInMS
+    );
+    const shiftIndex: number = Math.floor(
+      (this.shiftTimeStamp - week * weekInMs - day * dayInMS) / shiftInMS
+    );
+    const time: string =
+      shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
+
+    return { week, day, time };
   }
 }
 

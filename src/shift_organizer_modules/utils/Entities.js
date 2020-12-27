@@ -60,14 +60,21 @@ class Student {
     addPreference(preference) {
         if (preference instanceof Preference === false)
             throw new Error(`Expected an object of type Preferene but got ${typeof preference} instead`);
+        if (this.preferences.find((pref) => pref.shiftTimeStamp === preference.shiftTimeStamp)) {
+            throw new Error(`Preference already exists for this student`);
+        }
         this.preferences.push(preference);
+        return true;
     }
-    removePreference(shift) {
-        const prefIndex = this.preferences.findIndex((pref) => pref.shift === shift);
+    removePreference(shiftToRemoveTimestamp) {
+        const prefIndex = this.preferences.findIndex((pref) => pref.shiftTimeStamp === shiftToRemoveTimestamp);
         if (!prefIndex) {
-            throw "Student doe sno have a preference for this shift";
+            throw new Error("Student does not have a preference for this shift");
         }
         this.preferences.splice(prefIndex, 1);
+    }
+    getPreferences() {
+        return this.preferences.slice();
     }
     printPreferences() {
         this.preferences.map((preference) => console.log(preference));
@@ -75,11 +82,18 @@ class Student {
 }
 exports.Student = Student;
 class Preference {
-    constructor(student, shift, available) {
+    constructor(student, shiftTimeStamp, available) {
         this.student = student;
-        this.shift = shift;
+        this.shiftTimeStamp = shiftTimeStamp;
         this.available = available;
         this.handled = false;
+    }
+    getPrettyTime() {
+        const week = Math.floor(this.shiftTimeStamp / interface_1.weekInMs);
+        const day = Math.floor((this.shiftTimeStamp - interface_1.weekInMs * week) / interface_1.dayInMS);
+        const shiftIndex = Math.floor((this.shiftTimeStamp - week * interface_1.weekInMs - day * interface_1.dayInMS) / interface_1.shiftInMS);
+        const time = shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
+        return { week, day, time };
     }
 }
 exports.Preference = Preference;

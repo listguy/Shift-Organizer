@@ -1,32 +1,35 @@
 import WeekTable from "./components/WeekTable";
 import { Preference, Student } from "./shift_organizer_modules/utils/Entities";
 import {
+  dayInMS,
   IOrganizedShiftDay,
   IPreference,
   IShiftManager,
   IStudent,
+  shiftInMS,
+  weekInMs,
 } from "./shift_organizer_modules/utils/interface";
 import ShiftManager from "./shift_organizer_modules/shiftOrginazor";
 import { useEffect, useState } from "react";
 import AddStudent from "./components/AddStudent";
 import Swal, { SweetAlertResult } from "sweetalert2";
+import StudentsDeatails from "./components/StudentTicket";
 
 const names: string[] = [
   "Nitzan",
   "Nadav",
   "Asaf",
-  // "Shimon",
-  // "Anna",
-  // "Idan",
-  // "Danel",
-  // "Lahav",
-  // "Sean",
-  // "Omri",
+  "Shimon",
+  "Anna",
+  "Idan",
+  "Danel",
+  "Lahav",
+  "Sean",
+  "Omri",
 ];
 const getRandomDay: () => number = () => Math.floor(Math.random() * 7) + 1;
 const getRandomWeek: () => number = () => Math.floor(Math.random() * 0) + 1;
-const getShift: () => string = () =>
-  ["morning", "noon", "evening"][Math.floor(Math.random() * 3)];
+const getShift: () => number = () => [0, 1, 2][Math.floor(Math.random() * 3)];
 const getAvailable: () => boolean = () =>
   Boolean(Math.floor(Math.random() * 2));
 
@@ -37,15 +40,14 @@ names.map((name: string) => {
   const newStudent: IStudent = SM.addStudent(name)!;
   const pref: IPreference = new Preference(
     newStudent,
-    { day: getRandomDay(), time: getShift(), week: getRandomWeek() },
+    getRandomWeek() * weekInMs +
+      getRandomDay() * dayInMS +
+      getShift() * shiftInMS,
     getAvailable()
   );
-  // newStudent.addPreference(pref);
+  newStudent.addPreference(pref);
 });
 
-console.log("New SM");
-// const shiftMonth: IOrganizedShiftDay[][] = SM.organize(students);
-// console.log(shiftMonth);
 function App() {
   const [students, setStudents] = useState<IStudent[]>(SM.getAllStudents());
   const [shiftsState, setShiftState] = useState<IOrganizedShiftDay[][]>(
@@ -63,6 +65,26 @@ function App() {
       return newStudent;
     } catch (e) {
       return false;
+    }
+  };
+
+  const addPreferenceToStudent: (
+    studentName: string,
+    shiftTimeStamp: number,
+    available?: boolean,
+    sm?: IShiftManager
+  ) => boolean | string = (
+    studentName: string,
+    shiftTimeStamp: number,
+    available: boolean = true,
+    sm: IShiftManager = SM
+  ) => {
+    try {
+      sm.addPreferenceToStudent(studentName, available, shiftTimeStamp);
+      setStudents(sm.getAllStudents());
+      return true;
+    } catch (e) {
+      return e;
     }
   };
 
@@ -97,12 +119,13 @@ function App() {
       <AddStudent addFunction={addStudent} />
       <button onClick={organizeShifts}>Organize!</button>
       <h1 style={{ textAlign: "center" }}>This week's shifts</h1>
-      <h2>Available Students</h2>
+      {/* <h2>Available Students</h2>
       <div>
         {students.map((student: IStudent) => (
           <li> {student.name}</li>
         ))}
-      </div>
+      </div> */}
+      <StudentsDeatails students={students} addPref={addPreferenceToStudent} />
       Week 1
       <WeekTable shifts={shiftsState[0]} />
       Week 2
@@ -111,8 +134,8 @@ function App() {
       <WeekTable shifts={shiftsState[2]} />
       Week 4
       <WeekTable shifts={shiftsState[3]} />
-      <h2>Students Preferences</h2>
-      {/* {students.map((student: IStudent) => (
+      {/* <h2>Students Preferences</h2>
+      {students.map((student: IStudent) => (
         <li>
           <b>{student.name}</b>,{" "}
           {student?.preferences.map(
