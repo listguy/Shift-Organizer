@@ -120,7 +120,7 @@ class ShiftManager {
         }));
         //first, assign all available preferences
         availablePreferences.forEach((pref) => {
-            const { week, day, time, } = pref.getPrettyTime();
+            const { week, day, time, } = pref.getTimeObject();
             const desiredShift = shifts[week][day].getShiftByTime(time);
             if (desiredShift.chosen)
                 return;
@@ -132,7 +132,7 @@ class ShiftManager {
         });
         // assign all unavailable preferences
         unavailablePreferences.forEach((pref) => {
-            const { week, day, time, } = pref.getPrettyTime();
+            const { week, day, time, } = pref.getTimeObject();
             const undesiredShift = shifts[week][day].getShiftByTime(time);
             undesiredShift.addUnavailable(pref.student);
             pref.handled = true;

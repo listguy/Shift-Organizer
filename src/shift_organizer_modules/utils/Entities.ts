@@ -111,10 +111,10 @@ export class Student implements IStudent {
       (pref: IPreference) => pref.shiftTimeStamp === shiftToRemoveTimestamp
     );
 
-    if (!prefIndex) {
+    if (prefIndex === -1) {
       throw new Error("Student does not have a preference for this shift");
     }
-
+    console.log("here");
     this.preferences.splice(prefIndex, 1);
   }
 
@@ -127,6 +127,15 @@ export class Student implements IStudent {
   }
 }
 
+const daysInWeek: string[] = [
+  "Sunday",
+  "Monday",
+  "Tuseday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 export class Preference implements IPreference {
   student: IStudent;
   shiftTimeStamp: number;
@@ -140,7 +149,7 @@ export class Preference implements IPreference {
     this.handled = false;
   }
 
-  getPrettyTime() {
+  getTimeObject() {
     const week: number = Math.floor(this.shiftTimeStamp / weekInMs);
     const day: number = Math.floor(
       (this.shiftTimeStamp - weekInMs * week) / dayInMS
@@ -152,6 +161,11 @@ export class Preference implements IPreference {
       shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
 
     return { week, day, time };
+  }
+
+  getTimeString() {
+    const { week, day, time } = this.getTimeObject();
+    return `${daysInWeek[day]}, ${time}, week ${week + 1}`;
   }
 }
 

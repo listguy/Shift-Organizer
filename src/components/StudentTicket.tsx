@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import styled from "styled-components";
-import Swal from "sweetalert2";
+import Swal, { SweetAlertResult } from "sweetalert2";
 import {
   dayInMS,
   IPreference,
@@ -28,6 +28,7 @@ const dayOptions: string = [0, 1, 2, 3, 4, 5, 6].reduce(
 export default function StudentsDeatails({
   students,
   addPref,
+  rmvPref,
 }: {
   students: IStudent[];
   addPref: (
@@ -36,8 +37,9 @@ export default function StudentsDeatails({
     available?: boolean,
     sm?: IShiftManager
   ) => boolean | Error;
+  rmvPref: (studentName: string, shiftTimeStamp: number) => boolean | Error;
 }) {
-  const promptModal = useCallback(async (studentName: string) => {
+  const promptAddModal = useCallback(async (studentName: string) => {
     const { value: formValue } = await Swal.fire({
       title: "Enter Preference Details",
       html:
@@ -84,19 +86,53 @@ export default function StudentsDeatails({
     // Swal.fire(JSON.stringify(formValue));
   }, []);
 
+  const promptRmvModal = useCallback(
+    async (pref: IPreference, student: IStudent) => {
+      Swal.fire({
+        title: "Are you sure?",
+        text: `Delete prefrence ${pref.getTimeString()} for ${student.name}?`,
+        icon: "warning",
+        showCancelButton: true,
+        cancelButtonColor: "#3085d6",
+        confirmButtonColor: "#d33",
+        // cancelButtonText:"Delete",
+        confirmButtonText: "Delete",
+      }).then((result: SweetAlertResult) => {
+        if (result.isConfirmed) {
+          const succeed: boolean | Error = rmvPref(
+            student.name,
+            pref.shiftTimeStamp
+          );
+          if (succeed === true) {
+            Swal.fire("Deleted!", "", "success");
+          } else {
+            console.log(succeed);
+            Swal.fire("oops...", "", "error");
+          }
+        }
+      });
+    },
+    []
+  );
+
   return (
     <Wrapper>
       {students.map((student: IStudent) => (
         <Ticket key={`student-${student.name}`}>
           <b>{student.name}</b>
-          {student.preferences.map((pref: IPreference, i: number) => (
+          {student.getPreferences().map((pref: IPreference, i: number) => (
             <li key={`pref-${student.name}-${i}`}>
-              {`${pref.getPrettyTime().week}-${pref.getPrettyTime().day}-${
-                pref.getPrettyTime().time
-              } ${pref.available ? "available" : "unavailable"}`}
+              {/* {`${pref.getTimeObject().week}-${pref.getTimeObject().day}-${
+                pref.getTimeObject().time
+              }  */}
+              {pref.getTimeString() +
+                ` ${pref.available ? "available" : "unavailable"}`}
+              <button onClick={() => promptRmvModal(pref, student)}>
+                Delete
+              </button>
             </li>
           ))}
-          <button onClick={() => promptModal(student.name)}>Add Pref</button>
+          <button onClick={() => promptAddModal(student.name)}>Add Pref</button>
         </Ticket>
       ))}
     </Wrapper>

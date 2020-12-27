@@ -68,9 +68,10 @@ class Student {
     }
     removePreference(shiftToRemoveTimestamp) {
         const prefIndex = this.preferences.findIndex((pref) => pref.shiftTimeStamp === shiftToRemoveTimestamp);
-        if (!prefIndex) {
+        if (prefIndex === -1) {
             throw new Error("Student does not have a preference for this shift");
         }
+        console.log("here");
         this.preferences.splice(prefIndex, 1);
     }
     getPreferences() {
@@ -81,6 +82,15 @@ class Student {
     }
 }
 exports.Student = Student;
+const daysInWeek = [
+    "Sunday",
+    "Monday",
+    "Tuseday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+];
 class Preference {
     constructor(student, shiftTimeStamp, available) {
         this.student = student;
@@ -88,12 +98,16 @@ class Preference {
         this.available = available;
         this.handled = false;
     }
-    getPrettyTime() {
+    getTimeObject() {
         const week = Math.floor(this.shiftTimeStamp / interface_1.weekInMs);
         const day = Math.floor((this.shiftTimeStamp - interface_1.weekInMs * week) / interface_1.dayInMS);
         const shiftIndex = Math.floor((this.shiftTimeStamp - week * interface_1.weekInMs - day * interface_1.dayInMS) / interface_1.shiftInMS);
         const time = shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
         return { week, day, time };
+    }
+    getTimeString() {
+        const { week, day, time } = this.getTimeObject();
+        return `${daysInWeek[day]}, ${time}, week ${week + 1}`;
     }
 }
 exports.Preference = Preference;

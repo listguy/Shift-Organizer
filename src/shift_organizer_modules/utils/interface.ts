@@ -34,7 +34,8 @@ export interface IPreference {
   shiftTimeStamp: number;
   handled: boolean;
 
-  getPrettyTime(): IPreferenceShift;
+  getTimeObject(): IPreferenceShift;
+  getTimeString(): string;
 }
 
 export interface IPreferenceShift {

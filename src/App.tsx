@@ -88,6 +88,24 @@ function App() {
     }
   };
 
+  const removePreferenceFromStudent: (
+    studentName: string,
+    shiftTimeStamp: number,
+    sm?: IShiftManager
+  ) => boolean | Error = (
+    studentName: string,
+    shiftTimeStamp: number,
+    sm: IShiftManager = SM
+  ) => {
+    try {
+      sm.removePreferenceFromStudent(studentName, shiftTimeStamp);
+      setStudents(sm.getAllStudents());
+      return true;
+    } catch (e) {
+      return e;
+    }
+  };
+
   const organizeShifts: () => void = () => {
     if (students.length < 7) {
       Swal.fire({
@@ -125,7 +143,11 @@ function App() {
           <li> {student.name}</li>
         ))}
       </div> */}
-      <StudentsDeatails students={students} addPref={addPreferenceToStudent} />
+      <StudentsDeatails
+        students={students}
+        addPref={addPreferenceToStudent}
+        rmvPref={removePreferenceFromStudent}
+      />
       Week 1
       <WeekTable shifts={shiftsState[0]} />
       Week 2

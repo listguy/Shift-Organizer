@@ -206,7 +206,7 @@ export default class ShiftManager implements IShiftManager {
         week,
         day,
         time,
-      }: { week: number; day: number; time: string } = pref.getPrettyTime();
+      }: { week: number; day: number; time: string } = pref.getTimeObject();
 
       const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
       if (desiredShift.chosen) return;
@@ -223,7 +223,7 @@ export default class ShiftManager implements IShiftManager {
         week,
         day,
         time,
-      }: { week: number; day: number; time: string } = pref.getPrettyTime();
+      }: { week: number; day: number; time: string } = pref.getTimeObject();
 
       const undesiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
       undesiredShift.addUnavailable(pref.student);
