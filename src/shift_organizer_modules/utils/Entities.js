@@ -17,6 +17,7 @@ class Shift {
         this.chosen = student;
     }
     unassignStudent() {
+        this.chosen?.removeShift(this);
         this.chosen = undefined;
     }
     addUnavailable(student) {

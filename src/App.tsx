@@ -14,7 +14,9 @@ import { useEffect, useState } from "react";
 import AddStudent from "./components/AddStudent";
 import Swal, { SweetAlertResult } from "sweetalert2";
 import StudentsDeatails from "./components/StudentTicket";
-
+import { FaCaretLeft, FaCaretRight } from "react-icons/fa";
+import styled from "styled-components";
+import "./App.css";
 const names: string[] = [
   "Nitzan",
   "Nadav",
@@ -53,6 +55,7 @@ function App() {
   const [shiftsState, setShiftState] = useState<IOrganizedShiftDay[][]>(
     SM.getAllShifts()
   );
+  const [displayedWeek, setDisplayedWeek] = useState<number>(0);
 
   // Adds a new student to the shift Manager
   const addStudent: (name: string, sm?: IShiftManager) => IStudent | boolean = (
@@ -143,49 +146,67 @@ function App() {
     }
   };
 
-  // useEffect(() => {
-  //   addStudent("Nitzan");
-  // }, []);
+  const handleLeft: () => void = () =>
+    setDisplayedWeek((prev: number) => clamp(3, 0, prev - 1));
 
+  const handleRight: () => void = () =>
+    setDisplayedWeek((prev: number) => clamp(3, 0, prev + 1));
+
+  console.log(students);
   return (
     <>
       <AddStudent addFunction={addStudent} />
       <button onClick={organizeShifts}>Organize!</button>
-      <h1 style={{ textAlign: "center" }}>This week's shifts</h1>
-      {/* <h2>Available Students</h2>
-      <div>
-        {students.map((student: IStudent) => (
-          <li> {student.name}</li>
-        ))}
-      </div> */}
+      <h1 style={{ textAlign: "center" }}>Shift Organizer</h1>
+
       <StudentsDeatails
         students={students}
         addPref={addPreferenceToStudent}
         rmvPref={removePreferenceFromStudent}
         rmvStudent={removeStudent}
       />
-      Week 1
-      <WeekTable shifts={shiftsState[0]} />
-      Week 2
-      <WeekTable shifts={shiftsState[1]} />
-      Week 3
-      <WeekTable shifts={shiftsState[2]} />
-      Week 4
-      <WeekTable shifts={shiftsState[3]} />
-      {/* <h2>Students Preferences</h2>
-      {students.map((student: IStudent) => (
-        <li>
-          <b>{student.name}</b>,{" "}
-          {student?.preferences.map(
-            (pref: IPreference) =>
-              `${pref.shift.day}-${pref.shift.time} ${
-                pref.available ? "available" : "unavailable"
-              }`
-          )}
-        </li>
-      ))} */}
+      <ButtonsRow>
+        <ArrowButton opdir={false} onClick={handleLeft}>
+          <FaCaretLeft />
+        </ArrowButton>
+        <span>Week {displayedWeek + 1}</span>
+        <ArrowButton opdir={true} onClick={handleRight}>
+          <FaCaretRight />
+        </ArrowButton>
+      </ButtonsRow>
+      <WeekTable shifts={shiftsState[displayedWeek]} />
     </>
   );
 }
 
 export default App;
+
+//helpers
+function clamp(max: number, min: number, value: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+const ButtonsRow = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 4vh;
+  span {
+    font-size: 2em;
+    height: 100%;
+  }
+`;
+
+const ArrowButton = styled.div`
+  font-size: 3em;
+  margin: 0 2vw;
+  cursor: pointer;
+  transition: 0.15s ease-in-out;
+
+  :hover {
+    transform: translate(
+      ${(props: { opdir: boolean }) => (props.opdir ? "5px" : "-5px")},
+      0
+    );
+  }
+`;

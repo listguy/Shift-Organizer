@@ -98,6 +98,7 @@ class ShiftManager {
         shift.assignStudent(student);
     }
     organize() {
+        this.initShifts();
         const shifts = this.shifts;
         const students = this.students;
         const availablePreferences = [];
@@ -108,6 +109,7 @@ class ShiftManager {
         //     return { name: student.name, counter: 0 };
         //   }
         // );
+        console.log(students);
         const numberOfShiftsOfStudent = students.reduce((prev, student) => {
             //TODO fix this
             //@ts-ignore
@@ -207,9 +209,10 @@ function minConflicts(csp, students, maxSteps, treshold, SM) {
             return current;
         let randomConflict = getRandomConflict(csp, treshold);
         let value = minimizeConflictsIn(randomConflict, students);
-        if (randomConflict.chosen) {
-            randomConflict.chosen.removeShift(randomConflict);
-        }
+        // if (randomConflict.chosen) {
+        //   randomConflict.chosen.removeShift(randomConflict);
+        // }
+        randomConflict.unassignStudent();
         randomConflict.assignStudent(value);
         value.addShift(randomConflict);
     }
@@ -259,14 +262,12 @@ function minimizeConflictsIn(conflictedShift, students) {
     return leastConflictedStudent.student;
 }
 function getConflictsWith(student, shift) {
-    if (!shift) {
-        console.log("Whatttttttttttttttttttttttttt");
-        return 100;
-    }
     // sum of shift count between the student's shifts
     if (student.shifts.length <= 1) {
         return shift.isAdjacent(student.shifts[0]) ? 1 : 0;
     }
+    if (shift.isStudentUnavailable(student))
+        return 1;
     const distanceBetweenShifts = student.shifts
         .map((shift) => shift.timeStamp)
         .concat(shift.timeStamp)

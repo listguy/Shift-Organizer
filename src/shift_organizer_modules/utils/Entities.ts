@@ -35,6 +35,7 @@ export class Shift implements IShift {
   }
 
   unassignStudent() {
+    this.chosen?.removeShift(this);
     this.chosen = undefined;
   }
 

@@ -181,6 +181,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   organize(): IOrganizedShiftDay[][] {
+    this.initShifts();
     const shifts: IOrganizedShiftDay[][] = this.shifts;
     const students: IStudent[] = this.students;
     const availablePreferences: IPreference[] = [];
@@ -191,6 +192,7 @@ export default class ShiftManager implements IShiftManager {
     //     return { name: student.name, counter: 0 };
     //   }
     // );
+    console.log(students);
     const numberOfShiftsOfStudent: any = students.reduce(
       (prev, student: IStudent) => {
         //TODO fix this
@@ -346,9 +348,10 @@ function minConflicts(
     let randomConflict = getRandomConflict(csp, treshold);
     let value = minimizeConflictsIn(randomConflict, students);
 
-    if (randomConflict.chosen) {
-      randomConflict.chosen.removeShift(randomConflict);
-    }
+    // if (randomConflict.chosen) {
+    //   randomConflict.chosen.removeShift(randomConflict);
+    // }
+    randomConflict.unassignStudent();
     randomConflict.assignStudent(value);
     value.addShift(randomConflict);
   }
@@ -441,14 +444,12 @@ function minimizeConflictsIn(
 }
 
 function getConflictsWith(student: IStudent, shift: IShift): number {
-  if (!shift) {
-    console.log("Whatttttttttttttttttttttttttt");
-    return 100;
-  }
   // sum of shift count between the student's shifts
   if (student.shifts.length <= 1) {
     return shift.isAdjacent(student.shifts[0]) ? 1 : 0;
   }
+
+  if (shift.isStudentUnavailable(student)) return 1;
 
   const distanceBetweenShifts: number = student.shifts
     .map((shift: IShift) => shift.timeStamp)

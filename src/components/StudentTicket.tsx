@@ -9,6 +9,7 @@ import {
   shiftInMS,
   weekInMs,
 } from "../shift_organizer_modules/utils/interface";
+import { FaTrashAlt } from "react-icons/fa";
 
 const daysInWeek: string[] = [
   "Sunday",
@@ -145,23 +146,30 @@ export default function StudentsDeatails({
     <Wrapper>
       {students.map((student: IStudent) => (
         <Ticket key={`student-${student.name}`}>
-          <b>{student.name}</b>
-          {student.getPreferences().map((pref: IPreference, i: number) => (
-            <li key={`pref-${student.name}-${i}`}>
-              {/* {`${pref.getTimeObject().week}-${pref.getTimeObject().day}-${
-                pref.getTimeObject().time
-              }  */}
-              {pref.getTimeString() +
-                ` ${pref.available ? "available" : "unavailable"}`}
-              <button onClick={() => promptRmvModal(pref, student)}>
-                Delete
-              </button>
-            </li>
-          ))}
-          <button onClick={() => promptAddModal(student.name)}>Add Pref</button>
-          <button onClick={() => promptRmvStudentModal(student.name)}>
-            Remove Student
-          </button>
+          <Header>
+            <h3>{student.name}</h3>
+            {/* @ts-ignore */}
+            <StyledButton onClick={() => promptRmvStudentModal(student.name)}>
+              Remove Student
+            </StyledButton>
+          </Header>
+          <PrefList>
+            {student.getPreferences().map((pref: IPreference, i: number) => (
+              <PrefRow
+                key={`pref-${student.name}-${i}`}
+                available={pref.available}
+              >
+                {pref.getTimeString()}
+                <TrashButton onClick={() => promptRmvModal(pref, student)}>
+                  <FaTrashAlt />
+                </TrashButton>
+              </PrefRow>
+            ))}
+          </PrefList>
+          {/* @ts-ignore */}
+          <StyledButton onClick={() => promptAddModal(student.name)}>
+            Add Pref
+          </StyledButton>
         </Ticket>
       ))}
     </Wrapper>
@@ -169,13 +177,68 @@ export default function StudentsDeatails({
 }
 
 const Wrapper = styled.div`
-  display: grid;
   background-color: red;
-  grid-template-columns: repeat(5, 1fr);
-  width: 80%;
+  /* display: flex;
+  flex: 1; */
+  width: 85%;
+  height: 30vh;
+  min-height: 30vh;
+  margin: auto;
+  overflow-x: auto;
 `;
 
 const Ticket = styled.div`
-  background-color: yellow;
+  background-color: rgb(20, 20, 20);
+  color: wheat;
+  display: flex;
+  flex-direction: column;
   margin: 10px;
+  width: 25%;
+  height: 95%;
+  padding: 8px 12px;
+  border-radius: 5px;
+  box-shadow: -6px 4px 8px 2px rgba(240, 250, 252, 0.8);
+`;
+
+const Header = styled.div`
+  display: grid;
+  align-items: flex-end;
+  grid-template-columns: 3fr 1.5fr;
+  margin-bottom: 10px;
+  h3 {
+    margin: 3%;
+    font-size: 2.2em;
+  }
+`;
+
+const PrefList = styled.div`
+  /* background-color: green; */
+  height: 65%;
+  overflow-y: auto;
+`;
+
+const PrefRow = styled.div`
+  background-color: ${(props: { available: boolean }) =>
+    props.available ? "#1a641e" : "rgb(126,5,5)"};
+  /* color: rgb(126, 11, 11); */
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+  margin: 1% 0;
+  padding: 2% 2%;
+  /* font-size: 0.9em; */
+`;
+const TrashButton = styled.span`
+  color: rgb(238, 34, 56);
+  font-size: 1.2em;
+`;
+const StyledButton = styled.span`
+  background-color: ${(props: { bgcolor: string }) =>
+    props.bgcolor ? props.bgcolor : "#410c41"};
+  color: white;
+  width: fit-content;
+  height: fit-content;
+  padding: 8px 5px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  cursor: pointer;
 `;
