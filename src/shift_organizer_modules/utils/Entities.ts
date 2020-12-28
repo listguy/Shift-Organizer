@@ -34,6 +34,10 @@ export class Shift implements IShift {
     this.chosen = student;
   }
 
+  unassignStudent() {
+    this.chosen = undefined;
+  }
+
   addUnavailable(student: IStudent) {
     this.unavailable.push(student);
   }

@@ -29,6 +29,7 @@ export default function StudentsDeatails({
   students,
   addPref,
   rmvPref,
+  rmvStudent,
 }: {
   students: IStudent[];
   addPref: (
@@ -38,6 +39,7 @@ export default function StudentsDeatails({
     sm?: IShiftManager
   ) => boolean | Error;
   rmvPref: (studentName: string, shiftTimeStamp: number) => boolean | Error;
+  rmvStudent: (studentName: string) => boolean | Error;
 }) {
   const promptAddModal = useCallback(async (studentName: string) => {
     const { value: formValue } = await Swal.fire({
@@ -115,6 +117,30 @@ export default function StudentsDeatails({
     []
   );
 
+  const promptRmvStudentModal = useCallback(async (studentName: string) => {
+    Swal.fire({
+      title: `Delete student ${studentName}?`,
+      text: `This is irreversiable!`,
+      icon: "warning",
+      showCancelButton: true,
+      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Delete",
+    }).then((result: SweetAlertResult) => {
+      if (result.isConfirmed) {
+        const succeed: boolean | Error = rmvStudent(studentName);
+        if (succeed === true) {
+          Swal.fire("OK", `Student ${studentName} deleted`, "success");
+        } else {
+          if (succeed instanceof Error) {
+            console.log(succeed);
+            Swal.fire("oops...", succeed.message, "error");
+          }
+        }
+      }
+    });
+  }, []);
+
   return (
     <Wrapper>
       {students.map((student: IStudent) => (
@@ -133,6 +159,9 @@ export default function StudentsDeatails({
             </li>
           ))}
           <button onClick={() => promptAddModal(student.name)}>Add Pref</button>
+          <button onClick={() => promptRmvStudentModal(student.name)}>
+            Remove Student
+          </button>
         </Ticket>
       ))}
     </Wrapper>

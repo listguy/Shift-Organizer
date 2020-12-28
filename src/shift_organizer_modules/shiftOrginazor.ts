@@ -8,7 +8,13 @@ import {
   weekInMs,
   dayInMS,
 } from "./utils/interface";
-import { flatMap, flatMapDeep, flatMapDepth, flatten } from "lodash";
+import {
+  capitalize,
+  flatMap,
+  flatMapDeep,
+  flatMapDepth,
+  flatten,
+} from "lodash";
 import {
   OrginizedShiftDay,
   Preference,
@@ -28,6 +34,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   addStudent(name: string): IStudent | undefined {
+    name = capitalize(name.toLowerCase());
     const exist: boolean =
       this.students.findIndex((student: IStudent) => student.name === name) !==
       -1;
@@ -48,6 +55,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   removeStudent(name: string): void {
+    name = capitalize(name.toLowerCase());
     const indexOfStudent = this.students.findIndex(
       (student: IStudent) => student.name === name
     );
@@ -57,10 +65,13 @@ export default class ShiftManager implements IShiftManager {
     }
 
     this.students.splice(indexOfStudent, 1);
+    this.syncShiftsAndStudents();
     this.HeuristicTreshold = calculateTreshold(
       this.students.length,
       this.shifts.length * 7
     );
+
+    return;
   }
 
   getStudent(name: string): IStudent | undefined {
@@ -259,6 +270,21 @@ export default class ShiftManager implements IShiftManager {
             );
       })
     );
+  }
+
+  private syncShiftsAndStudents(): void {
+    //Unassigns students who no longer exist in student list from shifts
+    // this.shifts = this.shifts.map((shiftsWeek:IOrganizedShiftDay[])=>shiftsWeek.map((shiftDay:IOrganizedShiftDay)=>shift))
+    for (let weekShifts of this.shifts) {
+      for (let dayShifts of weekShifts) {
+        for (let shift of dayShifts.getAllShifts()) {
+          if (!shift.chosen) continue;
+          if (!this.students.includes(shift.chosen)) {
+            shift.unassignStudent();
+          }
+        }
+      }
+    }
   }
 
   private cloneShifts(): IOrganizedShiftDay[][] {

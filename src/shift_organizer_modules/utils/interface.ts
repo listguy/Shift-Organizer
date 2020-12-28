@@ -7,6 +7,7 @@ export interface IShift {
   unavailable: IStudent[];
   chosen: undefined | IStudent;
   assignStudent(student: IStudent): void;
+  unassignStudent(): void;
   addUnavailable(student: IStudent): void;
   isStudentUnavailable(student: IStudent): void;
   isAdjacent(otherShift: IShift | undefined): boolean;

@@ -11,6 +11,7 @@ class ShiftManager {
         this.HeuristicTreshold = 0;
     }
     addStudent(name) {
+        name = lodash_1.capitalize(name.toLowerCase());
         const exist = this.students.findIndex((student) => student.name === name) !==
             -1;
         if (exist) {
@@ -22,12 +23,15 @@ class ShiftManager {
         return newStudent;
     }
     removeStudent(name) {
+        name = lodash_1.capitalize(name.toLowerCase());
         const indexOfStudent = this.students.findIndex((student) => student.name === name);
         if (indexOfStudent === -1) {
             throw new Error("Student does not exist");
         }
         this.students.splice(indexOfStudent, 1);
+        this.syncShiftsAndStudents();
         this.HeuristicTreshold = calculateTreshold(this.students.length, this.shifts.length * 7);
+        return;
     }
     getStudent(name) {
         return this.students.find((student) => student.name === name);
@@ -149,6 +153,21 @@ class ShiftManager {
                 ? new Entities_1.OrginizedShiftDay(new Entities_1.Shift(day, week, "morning", true), new Entities_1.Shift(day, week, "noon", true), new Entities_1.Shift(day, week, "evening", true))
                 : new Entities_1.OrginizedShiftDay(new Entities_1.Shift(day, week, "morning"), new Entities_1.Shift(day, week, "noon"), new Entities_1.Shift(day, week, "evening"));
         }));
+    }
+    syncShiftsAndStudents() {
+        //Unassigns students who no longer exist in student list from shifts
+        // this.shifts = this.shifts.map((shiftsWeek:IOrganizedShiftDay[])=>shiftsWeek.map((shiftDay:IOrganizedShiftDay)=>shift))
+        for (let weekShifts of this.shifts) {
+            for (let dayShifts of weekShifts) {
+                for (let shift of dayShifts.getAllShifts()) {
+                    if (!shift.chosen)
+                        continue;
+                    if (!this.students.includes(shift.chosen)) {
+                        shift.unassignStudent();
+                    }
+                }
+            }
+        }
     }
     cloneShifts() {
         // created a copy for min conflicts to work on and modify.

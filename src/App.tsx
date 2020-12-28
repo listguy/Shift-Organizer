@@ -64,7 +64,22 @@ function App() {
       setStudents(sm.getAllStudents());
       return newStudent;
     } catch (e) {
+      console.log(e);
       return false;
+    }
+  };
+
+  const removeStudent: (name: string, sm?: IShiftManager) => boolean | Error = (
+    name: string,
+    sm: IShiftManager = SM
+  ) => {
+    try {
+      sm.removeStudent(name);
+      setStudents(sm.getAllStudents());
+      return true;
+    } catch (e) {
+      console.log(e);
+      return e;
     }
   };
 
@@ -147,6 +162,7 @@ function App() {
         students={students}
         addPref={addPreferenceToStudent}
         rmvPref={removePreferenceFromStudent}
+        rmvStudent={removeStudent}
       />
       Week 1
       <WeekTable shifts={shiftsState[0]} />
