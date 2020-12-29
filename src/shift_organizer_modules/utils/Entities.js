@@ -15,6 +15,7 @@ class Shift {
     }
     assignStudent(student) {
         this.chosen = student;
+        student.addShift(this);
     }
     unassignStudent() {
         this.chosen?.removeShift(this);

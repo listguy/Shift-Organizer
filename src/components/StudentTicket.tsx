@@ -143,9 +143,9 @@ export default function StudentsDeatails({
   }, []);
 
   return (
-    <Wrapper>
+    <Wrapper data-flick>
       {students.map((student: IStudent) => (
-        <Ticket key={`student-${student.name}`}>
+        <Ticket key={`student-${student.name}`} className="caroucell">
           <Header>
             <h3>{student.name}</h3>
             {/* @ts-ignore */}
@@ -178,26 +178,32 @@ export default function StudentsDeatails({
 
 const Wrapper = styled.div`
   background-color: red;
-  /* display: flex;
-  flex: 1; */
-  width: 85%;
-  height: 30vh;
-  min-height: 30vh;
+  display: flex;
+  /* flex: 1; */
+  width: 90%;
+  height: 24vh;
+  min-height: 24vh;
   margin: auto;
   overflow-x: auto;
 `;
 
 const Ticket = styled.div`
-  background-color: rgb(20, 20, 20);
+  background-color: rgb(63, 60, 60);
   color: wheat;
   display: flex;
   flex-direction: column;
   margin: 10px;
-  width: 25%;
+  width: 1000px;
   height: 95%;
   padding: 8px 12px;
   border-radius: 5px;
   box-shadow: -6px 4px 8px 2px rgba(240, 250, 252, 0.8);
+
+  /* counter-increment: caroucell; */
+
+  /* ::before {
+    display: block;
+  } */
 `;
 
 const Header = styled.div`
@@ -210,13 +216,11 @@ const Header = styled.div`
     font-size: 2.2em;
   }
 `;
-
 const PrefList = styled.div`
   /* background-color: green; */
   height: 65%;
   overflow-y: auto;
 `;
-
 const PrefRow = styled.div`
   background-color: ${(props: { available: boolean }) =>
     props.available ? "#1a641e" : "rgb(126,5,5)"};
@@ -224,8 +228,8 @@ const PrefRow = styled.div`
   display: grid;
   grid-template-columns: 9fr 1fr;
   margin: 1% 0;
-  padding: 2% 2%;
-  /* font-size: 0.9em; */
+  padding: 1% 2%;
+  font-size: 0.85em;
 `;
 const TrashButton = styled.span`
   color: rgb(238, 34, 56);

@@ -32,5 +32,5 @@ export default function AddStudent({
     }
   }, []);
 
-  return <button onClick={promptModal}>Add student</button>;
+  return <div onClick={promptModal}>Add Student</div>;
 }

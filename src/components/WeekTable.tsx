@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useCallback } from "react";
 import styled from "styled-components";
-import { IOrganizedShiftDay } from "../shift_organizer_modules/utils/interface";
+import Swal from "sweetalert2";
+import {
+  IOrganizedShiftDay,
+  IShift,
+  IShiftManager,
+} from "../shift_organizer_modules/utils/interface";
 
 const daysInWeek: string[] = [
   "Sunday",
@@ -14,24 +19,56 @@ const daysInWeek: string[] = [
 
 export default function WeekTable({
   shifts,
+  replaceFunc,
 }: {
   shifts: IOrganizedShiftDay[];
+  replaceFunc: (
+    studentName: string,
+    shift: IShift,
+    sm?: IShiftManager
+  ) => boolean | Error;
 }) {
+  const promptRepModal = useCallback(async (shift: IShift) => {
+    const { value: name } = await Swal.fire({
+      title: "Enter Student to Assign Name",
+      input: "text",
+      showCancelButton: true,
+      inputPlaceholder: "Name...",
+      inputValidator: (name: string) => {
+        if (!name) return "Please enter a valid name";
+        return null;
+      },
+    });
+
+    if (name) {
+      const sucess: boolean | Error = replaceFunc(name, shift);
+      if (sucess) {
+        Swal.fire(
+          "Woohoo!",
+          `Student ${name} was assigned successfuly!`,
+          "success"
+        );
+      } else {
+        Swal.fire("Oops..", `can't assign ${name} to this shift :(`, "error");
+      }
+    }
+  }, []);
+
   return (
     <TableWrapper>
       {shifts?.map((shiftDay: IOrganizedShiftDay, i: number) => (
         <TableColumn>
           <h2>{daysInWeek[i]}</h2>
-          <ShiftDay>
-            <span>morning</span>
+          <ShiftDay onClick={() => promptRepModal(shiftDay.getMorning())}>
+            <span>Morning</span>
             {shiftDay?.getMorning()?.chosen?.name}
           </ShiftDay>
-          <ShiftDay>
-            <span>noon</span>
+          <ShiftDay onClick={() => promptRepModal(shiftDay.getNoon())}>
+            <span>Noon</span>
             {shiftDay?.getNoon()?.chosen?.name}
           </ShiftDay>
-          <ShiftDay>
-            <span>evening</span>
+          <ShiftDay onClick={() => promptRepModal(shiftDay.getEvening())}>
+            <span>Evening</span>
             {shiftDay?.getEvening()?.chosen?.name}
           </ShiftDay>
         </TableColumn>

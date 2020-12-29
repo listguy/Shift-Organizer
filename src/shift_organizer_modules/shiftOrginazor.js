@@ -34,6 +34,7 @@ class ShiftManager {
         return;
     }
     getStudent(name) {
+        name = lodash_1.capitalize(name.toLowerCase());
         return this.students.find((student) => student.name === name);
     }
     getAllStudents() {
@@ -95,6 +96,7 @@ class ShiftManager {
         return this.shifts.slice();
     }
     assignStudentToShift(student, shift) {
+        shift.unassignStudent();
         shift.assignStudent(student);
     }
     organize() {
@@ -209,12 +211,7 @@ function minConflicts(csp, students, maxSteps, treshold, SM) {
             return current;
         let randomConflict = getRandomConflict(csp, treshold);
         let value = minimizeConflictsIn(randomConflict, students);
-        // if (randomConflict.chosen) {
-        //   randomConflict.chosen.removeShift(randomConflict);
-        // }
-        randomConflict.unassignStudent();
-        randomConflict.assignStudent(value);
-        value.addShift(randomConflict);
+        SM.assignStudentToShift(value, randomConflict);
     }
     return current;
 }

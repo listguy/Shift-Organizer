@@ -4,6 +4,7 @@ import {
   dayInMS,
   IOrganizedShiftDay,
   IPreference,
+  IShift,
   IShiftManager,
   IStudent,
   shiftInMS,
@@ -15,6 +16,7 @@ import AddStudent from "./components/AddStudent";
 import Swal, { SweetAlertResult } from "sweetalert2";
 import StudentsDeatails from "./components/StudentTicket";
 import { FaCaretLeft, FaCaretRight } from "react-icons/fa";
+import { IoCalendarOutline } from "react-icons/io5";
 import styled from "styled-components";
 import "./App.css";
 const names: string[] = [
@@ -124,6 +126,24 @@ function App() {
     }
   };
 
+  const replaceStudent: (
+    studentName: string,
+    shift: IShift,
+    sm?: IShiftManager
+  ) => boolean | Error = (
+    studentName: string,
+    shift: IShift,
+    sm: IShiftManager = SM
+  ) => {
+    const studentToAssign: IStudent | undefined = sm.getStudent(studentName);
+    if (!studentToAssign) return false;
+
+    sm.assignStudentToShift(studentToAssign, shift);
+
+    setStudents(sm.getAllStudents());
+    return true;
+  };
+
   const organizeShifts: () => void = () => {
     if (students.length < 7) {
       Swal.fire({
@@ -155,10 +175,13 @@ function App() {
   console.log(students);
   return (
     <>
-      <AddStudent addFunction={addStudent} />
-      <button onClick={organizeShifts}>Organize!</button>
-      <h1 style={{ textAlign: "center" }}>Shift Organizer</h1>
-
+      <MainTitle style={{ textAlign: "center" }}>
+        Shift Organizer <IoCalendarOutline />
+      </MainTitle>
+      <MainButtonsRow>
+        <AddStudent addFunction={addStudent} />
+        <div onClick={organizeShifts}>Organize!</div>
+      </MainButtonsRow>
       <StudentsDeatails
         students={students}
         addPref={addPreferenceToStudent}
@@ -174,7 +197,10 @@ function App() {
           <FaCaretRight />
         </ArrowButton>
       </ButtonsRow>
-      <WeekTable shifts={shiftsState[displayedWeek]} />
+      <WeekTable
+        shifts={shiftsState[displayedWeek]}
+        replaceFunc={replaceStudent}
+      />
     </>
   );
 }
@@ -185,6 +211,9 @@ export default App;
 function clamp(max: number, min: number, value: number): number {
   return Math.max(min, Math.min(max, value));
 }
+const MainTitle = styled.h1`
+  font-size: 3.8em;
+`;
 
 const ButtonsRow = styled.div`
   display: flex;
@@ -194,6 +223,29 @@ const ButtonsRow = styled.div`
   span {
     font-size: 2em;
     height: 100%;
+  }
+`;
+
+const MainButtonsRow = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5vh;
+  div {
+    background-color: wheat;
+    color: rgb(149, 7, 38);
+    font-weight: bold;
+    padding: 14px 8px;
+    width: fit-content;
+    font-size: 1.1em;
+    border-radius: 15px;
+    margin: 0 1vw;
+    cursor: pointer;
+    transition: 0.1s ease-in-out;
+  }
+
+  div:hover {
+    transform: translate(0px, -5px);
+    box-shadow: 0px 0px 4px 4px rgba(236, 234, 197, 0.8);
   }
 `;
 

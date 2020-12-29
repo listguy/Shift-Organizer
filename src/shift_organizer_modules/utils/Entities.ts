@@ -32,6 +32,7 @@ export class Shift implements IShift {
 
   assignStudent(student: IStudent) {
     this.chosen = student;
+    student.addShift(this);
   }
 
   unassignStudent() {

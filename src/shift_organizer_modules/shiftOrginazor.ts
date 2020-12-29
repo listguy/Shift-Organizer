@@ -75,6 +75,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   getStudent(name: string): IStudent | undefined {
+    name = capitalize(name.toLowerCase());
     return this.students.find((student: IStudent) => student.name === name);
   }
 
@@ -177,6 +178,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   assignStudentToShift(student: IStudent, shift: IShift): void {
+    shift.unassignStudent();
     shift.assignStudent(student);
   }
 
@@ -348,12 +350,7 @@ function minConflicts(
     let randomConflict = getRandomConflict(csp, treshold);
     let value = minimizeConflictsIn(randomConflict, students);
 
-    // if (randomConflict.chosen) {
-    //   randomConflict.chosen.removeShift(randomConflict);
-    // }
-    randomConflict.unassignStudent();
-    randomConflict.assignStudent(value);
-    value.addShift(randomConflict);
+    SM.assignStudentToShift(value, randomConflict);
   }
 
   return current;
