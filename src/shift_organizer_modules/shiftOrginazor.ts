@@ -27,10 +27,12 @@ export default class ShiftManager implements IShiftManager {
   students: IStudent[] = [];
   shifts: IOrganizedShiftDay[][] = [];
   HeuristicTreshold: number;
+  WeekendTreshold: number;
 
   constructor() {
     this.initShifts();
     this.HeuristicTreshold = 0;
+    this.WeekendTreshold = 0;
   }
 
   addStudent(name: string): IStudent | undefined {
@@ -51,6 +53,8 @@ export default class ShiftManager implements IShiftManager {
       this.shifts.length * 7
     );
 
+    this.WeekendTreshold = (4 * 6) / this.students.length;
+
     return newStudent;
   }
 
@@ -70,6 +74,7 @@ export default class ShiftManager implements IShiftManager {
       this.students.length,
       this.shifts.length * 7
     );
+    this.WeekendTreshold = (4 * 6) / this.students.length;
 
     return;
   }
@@ -183,7 +188,7 @@ export default class ShiftManager implements IShiftManager {
   }
 
   organize(): IOrganizedShiftDay[][] {
-    this.initShifts();
+    // this.initShifts();
     const shifts: IOrganizedShiftDay[][] = this.shifts;
     const students: IStudent[] = this.students;
     const availablePreferences: IPreference[] = [];
@@ -223,9 +228,14 @@ export default class ShiftManager implements IShiftManager {
         time,
       }: { week: number; day: number; time: string } = pref.getTimeObject();
 
-      const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
-      if (desiredShift.chosen) return;
-      desiredShift.assignStudent(pref.student);
+      // const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
+      const desiredShift: IShift = this.getShift(week + 1, day + 1, time)!;
+      if (desiredShift.chosen) {
+        // if chosen sudent has the current pref, continue
+        if (desiredShift.chosen.hasPreference(pref)) return;
+      }
+      // desiredShift.assignStudent(pref.student);
+      this.assignStudentToShift(pref.student, desiredShift);
       pref.handled = true;
       //TODO fix this
       //@ts-ignore
@@ -256,6 +266,47 @@ export default class ShiftManager implements IShiftManager {
     this.shifts = organizedShifts;
     console.log(this.HeuristicTreshold);
     return organizedShifts;
+  }
+
+  // returns all problems with current solution
+  getWarnings(): string[] {
+    // Possible problems:
+    // - 2 shifts in a row
+    // - too many weekend shifts
+    // - assigned to a shift he asked not to
+
+    const problems: string[] = [];
+
+    for (let student of this.students) {
+      let weekendCounter: number = 0;
+      student.shifts.sort((a: IShift, b: IShift) => a.timeStamp - b.timeStamp);
+
+      for (let i: number = 0; i < student.shifts.length; i++) {
+        if (student.shifts[i].isAdjacent(student.shifts[i + 1]))
+          problems.push(
+            `Student ${student.name} has consecutive shifts on ${student.shifts[
+              i
+            ].prettyPrintTime()}`
+          );
+        if (student.shifts[i].isStudentUnavailable(student))
+          problems.push(
+            `Student ${student.name} was assigned a shift on ${student.shifts[
+              i
+            ].prettyPrintTime()}, but preferes not to`
+          );
+        if (student.shifts[i].isSpecial) weekendCounter++;
+      }
+      if (weekendCounter > this.WeekendTreshold + 1)
+        problems.push(
+          `Student ${
+            student.name
+          } Has ${weekendCounter} weekend Shifts. ${Math.floor(
+            weekendCounter - this.WeekendTreshold
+          )} more than allowed.`
+        );
+    }
+
+    return problems;
   }
 
   private initShifts(): void {
@@ -370,6 +421,10 @@ function shiftsAreOrganized(
           legal = false;
           break;
         }
+        if (curShift.isStudentUnavailable(curShift.chosen)) {
+          legal = false;
+          break;
+        }
         const nextShift = SM.getShiftByStamp(curShift.timeStamp + shiftInMS);
         const prevShift = SM.getShiftByStamp(curShift.timeStamp - shiftInMS);
 
@@ -409,7 +464,8 @@ function getRandomConflict(
     ).filter(
       (shift: IShift, index: number, shiftsArr: IShift[]) =>
         shift.hasSameStudent(shiftsArr[index + 1]) ||
-        shift.hasSameStudent(shiftsArr[index - 1])
+        shift.hasSameStudent(shiftsArr[index - 1]) ||
+        shift.isStudentUnavailable(shift.chosen!)
     );
   }
 

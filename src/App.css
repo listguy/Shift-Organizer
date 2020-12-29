@@ -1,4 +1,11 @@
 body {
-  background-color: rgba(23, 23, 23, 1);
+  /* background-color: rgba(23, 23, 23, 1); */
+  background: linear-gradient(
+    90deg,
+    rgba(13, 13, 19, 1) 0%,
+    rgb(32, 16, 21) 71%,
+    rgb(63, 53, 55) 100%
+  );
+
   color: wheat;
 }

@@ -17,6 +17,7 @@ import Swal, { SweetAlertResult } from "sweetalert2";
 import StudentsDeatails from "./components/StudentTicket";
 import { FaCaretLeft, FaCaretRight } from "react-icons/fa";
 import { IoCalendarOutline } from "react-icons/io5";
+import { IoIosWarning } from "react-icons/io";
 import styled from "styled-components";
 import "./App.css";
 const names: string[] = [
@@ -172,9 +173,18 @@ function App() {
   const handleRight: () => void = () =>
     setDisplayedWeek((prev: number) => clamp(3, 0, prev + 1));
 
-  console.log(students);
+  const warnings: string[] = SM.getWarnings();
+
   return (
     <>
+      <WarningMsgContainer>
+        {warnings.map((msg: string) => (
+          <WarningMessage>
+            <IoIosWarning style={{ margin: "0 10px", fontSize: "1.2em" }} />
+            {msg}
+          </WarningMessage>
+        ))}
+      </WarningMsgContainer>
       <MainTitle style={{ textAlign: "center" }}>
         Shift Organizer <IoCalendarOutline />
       </MainTitle>
@@ -213,13 +223,14 @@ function clamp(max: number, min: number, value: number): number {
 }
 const MainTitle = styled.h1`
   font-size: 3.8em;
+  margin-bottom: 3vh;
 `;
 
 const ButtonsRow = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 4vh;
+  margin-top: 2vh;
   span {
     font-size: 2em;
     height: 100%;
@@ -260,5 +271,30 @@ const ArrowButton = styled.div`
       ${(props: { opdir: boolean }) => (props.opdir ? "5px" : "-5px")},
       0
     );
+  }
+`;
+
+const WarningMsgContainer = styled.div`
+  position: absolute;
+  width: 100vw;
+  top: 0;
+  z-index: 2;
+`;
+const WarningMessage = styled.div`
+  background-color: rgba(238, 106, 18, 0.65);
+  color: #3d0101;
+  width: 8vw;
+  height: 2vh;
+  margin: 0.5vh;
+  padding: 6px 2px;
+  border-radius: 5px;
+  font-size: 0.9em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: 0.2s ease-in-out;
+
+  :hover {
+    width: 60vh;
   }
 `;

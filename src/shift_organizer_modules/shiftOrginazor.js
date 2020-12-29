@@ -9,6 +9,7 @@ class ShiftManager {
         this.shifts = [];
         this.initShifts();
         this.HeuristicTreshold = 0;
+        this.WeekendTreshold = 0;
     }
     addStudent(name) {
         name = lodash_1.capitalize(name.toLowerCase());
@@ -20,6 +21,7 @@ class ShiftManager {
         const newStudent = new Entities_1.Student(name);
         this.students.push(newStudent);
         this.HeuristicTreshold = calculateTreshold(this.students.length, this.shifts.length * 7);
+        this.WeekendTreshold = (4 * 6) / this.students.length;
         return newStudent;
     }
     removeStudent(name) {
@@ -31,6 +33,7 @@ class ShiftManager {
         this.students.splice(indexOfStudent, 1);
         this.syncShiftsAndStudents();
         this.HeuristicTreshold = calculateTreshold(this.students.length, this.shifts.length * 7);
+        this.WeekendTreshold = (4 * 6) / this.students.length;
         return;
     }
     getStudent(name) {
@@ -100,7 +103,7 @@ class ShiftManager {
         shift.assignStudent(student);
     }
     organize() {
-        this.initShifts();
+        // this.initShifts();
         const shifts = this.shifts;
         const students = this.students;
         const availablePreferences = [];
@@ -129,10 +132,15 @@ class ShiftManager {
         //first, assign all available preferences
         availablePreferences.forEach((pref) => {
             const { week, day, time, } = pref.getTimeObject();
-            const desiredShift = shifts[week][day].getShiftByTime(time);
-            if (desiredShift.chosen)
-                return;
-            desiredShift.assignStudent(pref.student);
+            // const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
+            const desiredShift = this.getShift(week + 1, day + 1, time);
+            if (desiredShift.chosen) {
+                // if chosen sudent has the current pref, continue
+                if (desiredShift.chosen.hasPreference(pref))
+                    return;
+            }
+            // desiredShift.assignStudent(pref.student);
+            this.assignStudentToShift(pref.student, desiredShift);
             pref.handled = true;
             //TODO fix this
             //@ts-ignore
@@ -150,6 +158,29 @@ class ShiftManager {
         this.shifts = organizedShifts;
         console.log(this.HeuristicTreshold);
         return organizedShifts;
+    }
+    // returns all problems with current solution
+    getWarnings() {
+        // Possible problems:
+        // - 2 shifts in a row
+        // - too many weekend shifts
+        // - assigned to a shift he asked not to
+        const problems = [];
+        for (let student of this.students) {
+            let weekendCounter = 0;
+            student.shifts.sort((a, b) => a.timeStamp - b.timeStamp);
+            for (let i = 0; i < student.shifts.length; i++) {
+                if (student.shifts[i].isAdjacent(student.shifts[i + 1]))
+                    problems.push(`Student ${student.name} has consecutive shifts on ${student.shifts[i].prettyPrintTime()}`);
+                if (student.shifts[i].isStudentUnavailable(student))
+                    problems.push(`Student ${student.name} was assigned a shift on ${student.shifts[i].prettyPrintTime()}, but preferes not to`);
+                if (student.shifts[i].isSpecial)
+                    weekendCounter++;
+            }
+            if (weekendCounter > this.WeekendTreshold + 1)
+                problems.push(`Student ${student.name} Has ${weekendCounter} weekend Shifts. ${Math.floor(weekendCounter - this.WeekendTreshold)} more than allowed.`);
+        }
+        return problems;
     }
     initShifts() {
         this.shifts = [0, 1, 2, 3].map((week) => [0, 1, 2, 3, 4, 5, 6].map((day) => {
@@ -225,6 +256,10 @@ function shiftsAreOrganized(currentState, treshold, SM) {
                     legal = false;
                     break;
                 }
+                if (curShift.isStudentUnavailable(curShift.chosen)) {
+                    legal = false;
+                    break;
+                }
                 const nextShift = SM.getShiftByStamp(curShift.timeStamp + interface_1.shiftInMS);
                 const prevShift = SM.getShiftByStamp(curShift.timeStamp - interface_1.shiftInMS);
                 if (curShift.hasSameStudent(nextShift) ||
@@ -242,7 +277,8 @@ function getRandomConflict(csp, treshold) {
     let availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift) => !shift.chosen);
     if (!availableShifts.length) {
         availableShifts = lodash_1.flatMapDepth(csp, (shiftWeek) => shiftWeek.map((shiftDay) => shiftDay.getAllShifts()), 2).filter((shift, index, shiftsArr) => shift.hasSameStudent(shiftsArr[index + 1]) ||
-            shift.hasSameStudent(shiftsArr[index - 1]));
+            shift.hasSameStudent(shiftsArr[index - 1]) ||
+            shift.isStudentUnavailable(shift.chosen));
     }
     if (availableShifts.length === 0) {
         console.log("Should have quit!");

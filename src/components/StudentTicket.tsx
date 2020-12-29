@@ -149,7 +149,10 @@ export default function StudentsDeatails({
           <Header>
             <h3>{student.name}</h3>
             {/* @ts-ignore */}
-            <StyledButton onClick={() => promptRmvStudentModal(student.name)}>
+            <StyledButton
+              bgcolor="#5f0101"
+              onClick={() => promptRmvStudentModal(student.name)}
+            >
               Remove Student
             </StyledButton>
           </Header>
@@ -160,6 +163,7 @@ export default function StudentsDeatails({
                 available={pref.available}
               >
                 {pref.getTimeString()}
+                {pref.handled ? "V" : "X"}
                 <TrashButton onClick={() => promptRmvModal(pref, student)}>
                   <FaTrashAlt />
                 </TrashButton>
@@ -177,39 +181,52 @@ export default function StudentsDeatails({
 }
 
 const Wrapper = styled.div`
-  background-color: red;
+  /* background-color: red; */
   display: flex;
-  /* flex: 1; */
-  width: 90%;
-  height: 24vh;
+  /* justify-content: center; */
+  width: 100%;
+  height: 28vh;
   min-height: 24vh;
   margin: auto;
   overflow-x: auto;
+  ::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: rgba(15, 15, 15, 0.6);
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 `;
 
 const Ticket = styled.div`
-  background-color: rgb(63, 60, 60);
+  background-color: rgb(23, 20, 20);
   color: wheat;
   display: flex;
   flex-direction: column;
-  margin: 10px;
-  width: 1000px;
-  height: 95%;
+  margin: 10px 2vw;
+  min-width: 20%;
+  width: 20%;
+  height: 82%;
   padding: 8px 12px;
   border-radius: 5px;
-  box-shadow: -6px 4px 8px 2px rgba(240, 250, 252, 0.8);
-
-  /* counter-increment: caroucell; */
-
-  /* ::before {
-    display: block;
-  } */
+  box-shadow: -3px 4px 8px 2px rgba(240, 250, 252, 0.8);
 `;
 
 const Header = styled.div`
   display: grid;
   align-items: flex-end;
-  grid-template-columns: 3fr 1.5fr;
+  grid-template-columns: 3fr 1.8fr;
   margin-bottom: 10px;
   h3 {
     margin: 3%;
@@ -220,6 +237,24 @@ const PrefList = styled.div`
   /* background-color: green; */
   height: 65%;
   overflow-y: auto;
+  ::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 `;
 const PrefRow = styled.div`
   background-color: ${(props: { available: boolean }) =>
@@ -229,7 +264,6 @@ const PrefRow = styled.div`
   grid-template-columns: 9fr 1fr;
   margin: 1% 0;
   padding: 1% 2%;
-  font-size: 0.85em;
 `;
 const TrashButton = styled.span`
   color: rgb(238, 34, 56);
@@ -237,8 +271,8 @@ const TrashButton = styled.span`
 `;
 const StyledButton = styled.span`
   background-color: ${(props: { bgcolor: string }) =>
-    props.bgcolor ? props.bgcolor : "#410c41"};
-  color: white;
+    props.bgcolor ? props.bgcolor : "#928619"};
+  color: #e0dede;
   width: fit-content;
   height: fit-content;
   padding: 8px 5px;

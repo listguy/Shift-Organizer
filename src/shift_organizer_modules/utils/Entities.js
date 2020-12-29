@@ -1,6 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const interface_1 = require("./interface");
+const daysInWeek = [
+    "Sunday",
+    "Monday",
+    "Tuseday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+];
 class Shift {
     constructor(day, week, time, special = false) {
         this.unavailable = [];
@@ -42,6 +51,9 @@ class Shift {
             return false;
         return otherShift.chosen === this.chosen;
     }
+    prettyPrintTime() {
+        return `${daysInWeek[this.day]}, ${this.time} week ${this.week + 1}`;
+    }
 }
 exports.Shift = Shift;
 class Student {
@@ -61,6 +73,10 @@ class Student {
             return { day: shift.day, time: shift.time };
         });
         console.log(formated);
+    }
+    hasPreference(pref) {
+        return (this.preferences.findIndex((p) => p.getTimeString() === pref.getTimeString() &&
+            p.available === pref.available) !== -1);
     }
     addPreference(preference) {
         if (preference instanceof Preference === false)
@@ -87,15 +103,6 @@ class Student {
     }
 }
 exports.Student = Student;
-const daysInWeek = [
-    "Sunday",
-    "Monday",
-    "Tuseday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-];
 class Preference {
     constructor(student, shiftTimeStamp, available) {
         this.student = student;

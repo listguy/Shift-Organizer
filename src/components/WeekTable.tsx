@@ -81,7 +81,7 @@ const TableWrapper = styled.div`
   display: flex;
   width: 90vw;
   min-height: 40vh;
-  margin: 2vh auto;
+  margin: 0 auto;
 `;
 
 const TableColumn = styled.div`

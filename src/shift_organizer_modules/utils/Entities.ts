@@ -9,6 +9,16 @@ import {
   shiftInMS,
 } from "./interface";
 
+const daysInWeek: string[] = [
+  "Sunday",
+  "Monday",
+  "Tuseday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
 export class Shift implements IShift {
   day: number;
   week: number;
@@ -67,6 +77,10 @@ export class Shift implements IShift {
     if (otherShift instanceof Shift === false) return false;
     return otherShift!.chosen === this.chosen;
   }
+
+  prettyPrintTime(): string {
+    return `${daysInWeek[this.day]}, ${this.time} week ${this.week + 1}`;
+  }
 }
 
 export class Student implements IStudent {
@@ -78,11 +92,11 @@ export class Student implements IStudent {
     this.name = name;
   }
 
-  addShift(shift: IShift) {
+  addShift(shift: IShift): void {
     this.shifts.push(shift);
   }
 
-  removeShift(shift: IShift) {
+  removeShift(shift: IShift): void {
     this.shifts = this.shifts.filter((s: IShift) => s != shift);
   }
 
@@ -93,7 +107,17 @@ export class Student implements IStudent {
     console.log(formated);
   }
 
-  addPreference(preference: IPreference) {
+  hasPreference(pref: IPreference): boolean {
+    return (
+      this.preferences.findIndex(
+        (p: IPreference) =>
+          p.getTimeString() === pref.getTimeString() &&
+          p.available === pref.available
+      ) !== -1
+    );
+  }
+
+  addPreference(preference: IPreference): Error | boolean {
     if (preference instanceof Preference === false)
       throw new Error(
         `Expected an object of type Preferene but got ${typeof preference} instead`
@@ -133,15 +157,6 @@ export class Student implements IStudent {
   }
 }
 
-const daysInWeek: string[] = [
-  "Sunday",
-  "Monday",
-  "Tuseday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 export class Preference implements IPreference {
   student: IStudent;
   shiftTimeStamp: number;
