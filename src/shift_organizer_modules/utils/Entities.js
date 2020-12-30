@@ -1,6 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const interface_1 = require("./interface");
+const daysInWeek = [
+    "Sunday",
+    "Monday",
+    "Tuseday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+];
 class Shift {
     constructor(day, week, time, special = false) {
         this.unavailable = [];
@@ -15,9 +24,22 @@ class Shift {
     }
     assignStudent(student) {
         this.chosen = student;
+        this.chosen.handlePrefOfShift(this, "assign");
+        student.addShift(this);
+    }
+    unassignStudent() {
+        this.chosen?.removeShift(this);
+        this.chosen?.handlePrefOfShift(this, "unassign");
+        this.chosen = undefined;
     }
     addUnavailable(student) {
         this.unavailable.push(student);
+    }
+    removeUnavailable(student) {
+        const toRemoveIndex = this.unavailable.findIndex((s) => s === student);
+        if (toRemoveIndex === -1)
+            return;
+        this.unavailable.splice(toRemoveIndex, 1);
     }
     isStudentUnavailable(student) {
         return this.unavailable.includes(student);
@@ -36,6 +58,9 @@ class Shift {
         if (otherShift instanceof Shift === false)
             return false;
         return otherShift.chosen === this.chosen;
+    }
+    prettyPrintTime() {
+        return `${daysInWeek[this.day]}, ${this.time} week ${this.week + 1}`;
     }
 }
 exports.Shift = Shift;
@@ -57,17 +82,51 @@ class Student {
         });
         console.log(formated);
     }
+    hasPreference(prefStamp, available) {
+        return this.getPreference(prefStamp, available) !== undefined;
+    }
     addPreference(preference) {
         if (preference instanceof Preference === false)
             throw new Error(`Expected an object of type Preferene but got ${typeof preference} instead`);
-        this.preferences.push(preference);
-    }
-    removePreference(shift) {
-        const prefIndex = this.preferences.findIndex((pref) => pref.shift === shift);
-        if (!prefIndex) {
-            throw "Student doe sno have a preference for this shift";
+        if (this.preferences.find((pref) => pref.shiftTimeStamp === preference.shiftTimeStamp)) {
+            throw new Error(`A Preference in this time already exists for this student`);
         }
+        this.preferences.push(preference);
+        return true;
+    }
+    removePreference(shiftToRemoveTimestamp) {
+        const prefIndex = this.preferences.findIndex((pref) => pref.shiftTimeStamp === shiftToRemoveTimestamp);
+        if (prefIndex === -1) {
+            throw new Error("Student does not have a preference for this shift");
+        }
+        console.log("here");
         this.preferences.splice(prefIndex, 1);
+    }
+    getPreference(stamp, available) {
+        return this.preferences.find((pref) => pref.shiftTimeStamp === stamp && pref.available === available);
+    }
+    getPreferences() {
+        return this.preferences.slice();
+    }
+    handlePrefOfShift(shift, toggle) {
+        const availablePref = this.getPreference(shift.timeStamp, true);
+        const unavailablePref = this.getPreference(shift.timeStamp, false);
+        if (!availablePref && !unavailablePref)
+            return;
+        switch (toggle) {
+            case "assign":
+                if (availablePref)
+                    availablePref.handled = true;
+                else
+                    unavailablePref.handled = false;
+                break;
+            case "unassign":
+                if (availablePref)
+                    availablePref.handled = false;
+                else
+                    unavailablePref.handled = true;
+                break;
+        }
     }
     printPreferences() {
         this.preferences.map((preference) => console.log(preference));
@@ -75,11 +134,22 @@ class Student {
 }
 exports.Student = Student;
 class Preference {
-    constructor(student, shift, available) {
+    constructor(student, shiftTimeStamp, available) {
         this.student = student;
-        this.shift = shift;
+        this.shiftTimeStamp = shiftTimeStamp;
         this.available = available;
         this.handled = false;
+    }
+    getTimeObject() {
+        const week = Math.floor(this.shiftTimeStamp / interface_1.weekInMs);
+        const day = Math.floor((this.shiftTimeStamp - interface_1.weekInMs * week) / interface_1.dayInMS);
+        const shiftIndex = Math.floor((this.shiftTimeStamp - week * interface_1.weekInMs - day * interface_1.dayInMS) / interface_1.shiftInMS);
+        const time = shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
+        return { week, day, time };
+    }
+    getTimeString() {
+        const { week, day, time } = this.getTimeObject();
+        return `${daysInWeek[day]}, ${time}, week ${week + 1}`;
     }
 }
 exports.Preference = Preference;
@@ -114,9 +184,3 @@ class OrginizedShiftDay {
     }
 }
 exports.OrginizedShiftDay = OrginizedShiftDay;
-// let s1 = new Shift(1, "a");
-// let s2 = new Shift(2, "b");
-// s1.addUnavailable(new Student("bob"));
-// s2.addUnavailable(new Student("mo"));
-// console.log(s1.unavailable);
-// console.log(s2.unavailable);

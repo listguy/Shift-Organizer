@@ -5,10 +5,10 @@ import {
   IStudent,
 } from "../shift_organizer_modules/utils/interface";
 
-export default function AddStudent({
-  addFunction,
+export default function RemoveModal({
+  rmvFunction,
 }: {
-  addFunction: (name: string, sm?: IShiftManager) => IStudent | boolean;
+  rmvFunction: (name: string, sm?: IShiftManager) => IStudent | boolean;
 }) {
   const promptModal = useCallback(async () => {
     const { value: name } = await Swal.fire({
@@ -23,7 +23,7 @@ export default function AddStudent({
     });
 
     if (name) {
-      const sucess: boolean | IStudent = addFunction(name);
+      const sucess: boolean | IStudent = rmvFunction(name);
       if (sucess) {
         Swal.fire("Woohoo!", `Student ${name} added!`, "success");
       } else {
@@ -32,5 +32,5 @@ export default function AddStudent({
     }
   }, []);
 
-  return <div onClick={promptModal}>Add Student</div>;
+  return <button onClick={promptModal}>Add student</button>;
 }

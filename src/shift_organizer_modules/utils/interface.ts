@@ -7,10 +7,13 @@ export interface IShift {
   unavailable: IStudent[];
   chosen: undefined | IStudent;
   assignStudent(student: IStudent): void;
+  unassignStudent(): void;
   addUnavailable(student: IStudent): void;
-  isStudentUnavailable(student: IStudent): void;
+  removeUnavailable(student: IStudent): void;
+  isStudentUnavailable(student: IStudent): boolean;
   isAdjacent(otherShift: IShift | undefined): boolean;
   hasSameStudent(otherShift: IShift | undefined): boolean;
+  prettyPrintTime(): string;
   printUnavailable(): void;
 }
 
@@ -22,16 +25,23 @@ export interface IStudent {
   addShift(shift: IShift): void;
   removeShift(shift: IShift): void;
   printShifts(): void;
-  addPreference(preference: IPreference): void;
-  removePreference(shift: IShift): void;
+  hasPreference(stamp: number, available: boolean): boolean;
+  addPreference(preference: IPreference): boolean | Error;
+  removePreference(shiftToRemoveTimestamp: number): void;
+  getPreference(stamp: number, available: boolean): IPreference | undefined;
+  getPreferences(): IPreference[];
+  handlePrefOfShift(shift: IShift, toggle: "assign" | "unassign"): void;
   printPreferences(): void;
 }
 
 export interface IPreference {
   student: IStudent;
   available: boolean;
-  shift: IPreferenceShift;
+  shiftTimeStamp: number;
   handled: boolean;
+
+  getTimeObject(): IPreferenceShift;
+  getTimeString(): string;
 }
 
 export interface IPreferenceShift {
@@ -52,7 +62,8 @@ export interface IShiftManager {
   shifts: IOrganizedShiftDay[][];
   students: IStudent[];
   HeuristicTreshold: number;
-  organize(): IOrganizedShiftDay[][]; // remove students from organize
+  organize(): IOrganizedShiftDay[][];
+  getWarnings(): string[];
   addStudent(name: string): IStudent | undefined;
   removeStudent(name: string): void;
   getStudent(name: string): IStudent | undefined;
@@ -61,8 +72,15 @@ export interface IShiftManager {
   getShiftByStamp(timestamp: number): IShift | undefined;
   getAllShifts(): IOrganizedShiftDay[][];
   assignStudentToShift(student: IStudent, shift: IShift): void;
-  addPreferenceToStudent(name: string, available: boolean, shift: IShift): void;
-  removePreferenceFromStudent(name: string, shift: IShift): void;
+  addPreferenceToStudent(
+    name: string,
+    available: boolean,
+    shiftTimeStamp: number
+  ): void | boolean;
+  removePreferenceFromStudent(
+    name: string,
+    shiftTimeStamp: number
+  ): void | boolean;
 }
 
 export const hourInMS = 1000 * 60 * 60;

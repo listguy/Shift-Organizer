@@ -9,6 +9,16 @@ import {
   shiftInMS,
 } from "./interface";
 
+const daysInWeek: string[] = [
+  "Sunday",
+  "Monday",
+  "Tuseday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
 export class Shift implements IShift {
   day: number;
   week: number;
@@ -32,10 +42,26 @@ export class Shift implements IShift {
 
   assignStudent(student: IStudent) {
     this.chosen = student;
+    this.chosen.handlePrefOfShift(this, "assign");
+    student.addShift(this);
+  }
+
+  unassignStudent() {
+    this.chosen?.removeShift(this);
+    this.chosen?.handlePrefOfShift(this, "unassign");
+    this.chosen = undefined;
   }
 
   addUnavailable(student: IStudent) {
     this.unavailable.push(student);
+  }
+
+  removeUnavailable(student: IStudent): void {
+    const toRemoveIndex: number = this.unavailable.findIndex(
+      (s: IStudent) => s === student
+    );
+    if (toRemoveIndex === -1) return;
+    this.unavailable.splice(toRemoveIndex, 1);
   }
 
   isStudentUnavailable(student: IStudent) {
@@ -61,6 +87,10 @@ export class Shift implements IShift {
     if (otherShift instanceof Shift === false) return false;
     return otherShift!.chosen === this.chosen;
   }
+
+  prettyPrintTime(): string {
+    return `${daysInWeek[this.day]}, ${this.time} week ${this.week + 1}`;
+  }
 }
 
 export class Student implements IStudent {
@@ -72,11 +102,11 @@ export class Student implements IStudent {
     this.name = name;
   }
 
-  addShift(shift: IShift) {
+  addShift(shift: IShift): void {
     this.shifts.push(shift);
   }
 
-  removeShift(shift: IShift) {
+  removeShift(shift: IShift): void {
     this.shifts = this.shifts.filter((s: IShift) => s != shift);
   }
 
@@ -87,24 +117,73 @@ export class Student implements IStudent {
     console.log(formated);
   }
 
-  addPreference(preference: IPreference) {
+  hasPreference(prefStamp: number, available: boolean): boolean {
+    return this.getPreference(prefStamp, available) !== undefined;
+  }
+
+  addPreference(preference: IPreference): Error | boolean {
     if (preference instanceof Preference === false)
       throw new Error(
         `Expected an object of type Preferene but got ${typeof preference} instead`
       );
+
+    if (
+      this.preferences.find(
+        (pref: IPreference) => pref.shiftTimeStamp === preference.shiftTimeStamp
+      )
+    ) {
+      throw new Error(
+        `A Preference in this time already exists for this student`
+      );
+    }
     this.preferences.push(preference);
+    return true;
   }
 
-  removePreference(shift: IShift): void {
+  removePreference(shiftToRemoveTimestamp: number): void {
     const prefIndex: number = this.preferences.findIndex(
-      (pref: IPreference) => pref.shift === shift
+      (pref: IPreference) => pref.shiftTimeStamp === shiftToRemoveTimestamp
     );
 
-    if (!prefIndex) {
-      throw "Student doe sno have a preference for this shift";
+    if (prefIndex === -1) {
+      throw new Error("Student does not have a preference for this shift");
     }
-
+    console.log("here");
     this.preferences.splice(prefIndex, 1);
+  }
+
+  getPreference(stamp: number, available: boolean): IPreference | undefined {
+    return this.preferences.find(
+      (pref: IPreference) =>
+        pref.shiftTimeStamp === stamp && pref.available === available
+    );
+  }
+
+  getPreferences(): IPreference[] {
+    return this.preferences.slice();
+  }
+
+  handlePrefOfShift(shift: IShift, toggle: "assign" | "unassign"): void {
+    const availablePref: IPreference | undefined = this.getPreference(
+      shift.timeStamp,
+      true
+    );
+    const unavailablePref: IPreference | undefined = this.getPreference(
+      shift.timeStamp,
+      false
+    );
+    if (!availablePref && !unavailablePref) return;
+
+    switch (toggle) {
+      case "assign":
+        if (availablePref) availablePref.handled = true;
+        else unavailablePref!.handled = false;
+        break;
+      case "unassign":
+        if (availablePref) availablePref.handled = false;
+        else unavailablePref!.handled = true;
+        break;
+    }
   }
 
   printPreferences() {
@@ -114,15 +193,34 @@ export class Student implements IStudent {
 
 export class Preference implements IPreference {
   student: IStudent;
-  shift: IPreferenceShift;
+  shiftTimeStamp: number;
   available: boolean;
   handled: boolean;
 
-  constructor(student: IStudent, shift: IPreferenceShift, available: boolean) {
+  constructor(student: IStudent, shiftTimeStamp: number, available: boolean) {
     this.student = student;
-    this.shift = shift;
+    this.shiftTimeStamp = shiftTimeStamp;
     this.available = available;
     this.handled = false;
+  }
+
+  getTimeObject() {
+    const week: number = Math.floor(this.shiftTimeStamp / weekInMs);
+    const day: number = Math.floor(
+      (this.shiftTimeStamp - weekInMs * week) / dayInMS
+    );
+    const shiftIndex: number = Math.floor(
+      (this.shiftTimeStamp - week * weekInMs - day * dayInMS) / shiftInMS
+    );
+    const time: string =
+      shiftIndex === 0 ? "morning" : shiftIndex === 1 ? "noon" : "evening";
+
+    return { week, day, time };
+  }
+
+  getTimeString() {
+    const { week, day, time } = this.getTimeObject();
+    return `${daysInWeek[day]}, ${time}, week ${week + 1}`;
   }
 }
 
@@ -166,12 +264,3 @@ export class OrginizedShiftDay implements IOrganizedShiftDay {
     console.log("Time is ilegal. Should be one of morning, noon, evening");
   }
 }
-
-// let s1 = new Shift(1, "a");
-// let s2 = new Shift(2, "b");
-
-// s1.addUnavailable(new Student("bob"));
-// s2.addUnavailable(new Student("mo"));
-
-// console.log(s1.unavailable);
-// console.log(s2.unavailable);
