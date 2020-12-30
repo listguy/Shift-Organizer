@@ -8,4 +8,5 @@ body {
   );
 
   color: wheat;
+  user-select: none;
 }

@@ -24,10 +24,12 @@ class Shift {
     }
     assignStudent(student) {
         this.chosen = student;
+        this.chosen.handlePrefOfShift(this, "assign");
         student.addShift(this);
     }
     unassignStudent() {
         this.chosen?.removeShift(this);
+        this.chosen?.handlePrefOfShift(this, "unassign");
         this.chosen = undefined;
     }
     addUnavailable(student) {
@@ -74,9 +76,8 @@ class Student {
         });
         console.log(formated);
     }
-    hasPreference(pref) {
-        return (this.preferences.findIndex((p) => p.getTimeString() === pref.getTimeString() &&
-            p.available === pref.available) !== -1);
+    hasPreference(prefStamp, available) {
+        return this.getPreference(prefStamp, available) !== undefined;
     }
     addPreference(preference) {
         if (preference instanceof Preference === false)
@@ -95,8 +96,31 @@ class Student {
         console.log("here");
         this.preferences.splice(prefIndex, 1);
     }
+    getPreference(stamp, available) {
+        return this.preferences.find((pref) => pref.shiftTimeStamp === stamp && pref.available === available);
+    }
     getPreferences() {
         return this.preferences.slice();
+    }
+    handlePrefOfShift(shift, toggle) {
+        const availablePref = this.getPreference(shift.timeStamp, true);
+        const unavailablePref = this.getPreference(shift.timeStamp, false);
+        if (!availablePref && !unavailablePref)
+            return;
+        switch (toggle) {
+            case "assign":
+                if (availablePref)
+                    availablePref.handled = true;
+                else
+                    unavailablePref.handled = false;
+                break;
+            case "unassign":
+                if (availablePref)
+                    availablePref.handled = false;
+                else
+                    unavailablePref.handled = true;
+                break;
+        }
     }
     printPreferences() {
         this.preferences.map((preference) => console.log(preference));
@@ -154,9 +178,3 @@ class OrginizedShiftDay {
     }
 }
 exports.OrginizedShiftDay = OrginizedShiftDay;
-// let s1 = new Shift(1, "a");
-// let s2 = new Shift(2, "b");
-// s1.addUnavailable(new Student("bob"));
-// s2.addUnavailable(new Student("mo"));
-// console.log(s1.unavailable);
-// console.log(s2.unavailable);

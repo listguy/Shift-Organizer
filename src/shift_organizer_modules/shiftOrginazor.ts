@@ -232,11 +232,15 @@ export default class ShiftManager implements IShiftManager {
       const desiredShift: IShift = this.getShift(week + 1, day + 1, time)!;
       if (desiredShift.chosen) {
         // if chosen sudent has the current pref, continue
-        if (desiredShift.chosen.hasPreference(pref)) return;
+        // if (desiredShift.chosen.hasPreference(pref)) return;
+        if (
+          desiredShift.chosen.hasPreference(pref.shiftTimeStamp, pref.available)
+        )
+          return;
       }
       // desiredShift.assignStudent(pref.student);
       this.assignStudentToShift(pref.student, desiredShift);
-      pref.handled = true;
+      // pref.handled = true;
       //TODO fix this
       //@ts-ignore
       numberOfShiftsOfStudent[pref.student] += 1;
@@ -261,6 +265,7 @@ export default class ShiftManager implements IShiftManager {
       students,
       1000,
       this.HeuristicTreshold,
+      this.WeekendTreshold,
       this
     );
     this.shifts = organizedShifts;
@@ -391,15 +396,16 @@ function minConflicts(
   students: IStudent[],
   maxSteps: number,
   treshold: number,
+  weekendTreshold: number,
   SM: IShiftManager
 ): IOrganizedShiftDay[][] {
   let current = csp;
 
   for (let i = 1; i < maxSteps; i++) {
     console.log(i);
-    if (shiftsAreOrganized(current, treshold, SM)) return current;
-    let randomConflict = getRandomConflict(csp, treshold);
-    let value = minimizeConflictsIn(randomConflict, students);
+    if (shiftsAreOrganized(current, weekendTreshold, SM)) return current;
+    let randomConflict = getRandomConflict(csp, weekendTreshold);
+    let value = minimizeConflictsIn(randomConflict, students, weekendTreshold);
 
     SM.assignStudentToShift(value, randomConflict);
   }
@@ -409,11 +415,12 @@ function minConflicts(
 
 function shiftsAreOrganized(
   currentState: IOrganizedShiftDay[][],
-  treshold: number,
+  weekendTreshold: number,
   SM: IShiftManager
 ): boolean {
   // checks if current shifts in state are fine organized:
   let legal = true;
+  const numberOfWeekendShifts: any = {};
   for (let shiftWeek of currentState) {
     for (let shiftDay of shiftWeek) {
       for (let curShift of shiftDay.getAllShifts()) {
@@ -421,9 +428,18 @@ function shiftsAreOrganized(
           legal = false;
           break;
         }
+        // console.log(curShift);
         if (curShift.isStudentUnavailable(curShift.chosen)) {
           legal = false;
           break;
+        }
+
+        if (curShift.isSpecial) {
+          numberOfWeekendShifts[curShift.chosen.name] = numberOfWeekendShifts[
+            curShift.chosen.name
+          ]
+            ? numberOfWeekendShifts[curShift.chosen.name] + 1
+            : 1;
         }
         const nextShift = SM.getShiftByStamp(curShift.timeStamp + shiftInMS);
         const prevShift = SM.getShiftByStamp(curShift.timeStamp - shiftInMS);
@@ -438,12 +454,20 @@ function shiftsAreOrganized(
       }
     }
   }
+  if (legal) {
+    console.log(numberOfWeekendShifts);
+    for (let value of Object.values(numberOfWeekendShifts))
+      if ((value as number) > weekendTreshold + 1) {
+        legal = false;
+        break;
+      }
+  }
   return legal;
 }
 
 function getRandomConflict(
   csp: IOrganizedShiftDay[][],
-  treshold: number
+  weekendTreshold: number
 ): IShift {
   // get a random unassigned shift
   let availableShifts: IShift[] = flatMapDepth(
@@ -465,26 +489,30 @@ function getRandomConflict(
       (shift: IShift, index: number, shiftsArr: IShift[]) =>
         shift.hasSameStudent(shiftsArr[index + 1]) ||
         shift.hasSameStudent(shiftsArr[index - 1]) ||
-        shift.isStudentUnavailable(shift.chosen!)
+        shift.isStudentUnavailable(shift.chosen!) ||
+        (shift.isSpecial &&
+          shift.chosen!.shifts.filter((s: IShift) => s.isSpecial).length >
+            weekendTreshold)
     );
   }
 
-  if (availableShifts.length === 0) {
-    console.log("Should have quit!");
-  }
   return availableShifts[Math.floor(Math.random() * availableShifts.length)];
 }
 
 function minimizeConflictsIn(
   conflictedShift: IShift,
-  students: IStudent[]
+  students: IStudent[],
+  weekendTreshold: number
 ): IStudent {
   // assign a student that will minimize the conflicts
   const conflictsOfStudents: {
     conflicts: number;
     student: IStudent;
   }[] = students.map((student: IStudent) => {
-    return { conflicts: getConflictsWith(student, conflictedShift), student };
+    return {
+      conflicts: getConflictsWith(student, conflictedShift, weekendTreshold),
+      student,
+    };
   });
 
   const leastConflictedStudent: {
@@ -496,13 +524,24 @@ function minimizeConflictsIn(
   return leastConflictedStudent.student;
 }
 
-function getConflictsWith(student: IStudent, shift: IShift): number {
+function getConflictsWith(
+  student: IStudent,
+  shift: IShift,
+  WeekendTreshold: number
+): number {
   // sum of shift count between the student's shifts
   if (student.shifts.length <= 1) {
     return shift.isAdjacent(student.shifts[0]) ? 1 : 0;
   }
 
   if (shift.isStudentUnavailable(student)) return 1;
+
+  if (
+    shift.isSpecial &&
+    student.shifts.filter((shift: IShift) => shift.isSpecial).length >
+      WeekendTreshold
+  )
+    return 1;
 
   const distanceBetweenShifts: number = student.shifts
     .map((shift: IShift) => shift.timeStamp)

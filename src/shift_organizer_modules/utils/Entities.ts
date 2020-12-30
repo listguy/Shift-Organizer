@@ -42,11 +42,13 @@ export class Shift implements IShift {
 
   assignStudent(student: IStudent) {
     this.chosen = student;
+    this.chosen.handlePrefOfShift(this, "assign");
     student.addShift(this);
   }
 
   unassignStudent() {
     this.chosen?.removeShift(this);
+    this.chosen?.handlePrefOfShift(this, "unassign");
     this.chosen = undefined;
   }
 
@@ -107,14 +109,8 @@ export class Student implements IStudent {
     console.log(formated);
   }
 
-  hasPreference(pref: IPreference): boolean {
-    return (
-      this.preferences.findIndex(
-        (p: IPreference) =>
-          p.getTimeString() === pref.getTimeString() &&
-          p.available === pref.available
-      ) !== -1
-    );
+  hasPreference(prefStamp: number, available: boolean): boolean {
+    return this.getPreference(prefStamp, available) !== undefined;
   }
 
   addPreference(preference: IPreference): Error | boolean {
@@ -148,8 +144,38 @@ export class Student implements IStudent {
     this.preferences.splice(prefIndex, 1);
   }
 
+  getPreference(stamp: number, available: boolean): IPreference | undefined {
+    return this.preferences.find(
+      (pref: IPreference) =>
+        pref.shiftTimeStamp === stamp && pref.available === available
+    );
+  }
+
   getPreferences(): IPreference[] {
     return this.preferences.slice();
+  }
+
+  handlePrefOfShift(shift: IShift, toggle: "assign" | "unassign"): void {
+    const availablePref: IPreference | undefined = this.getPreference(
+      shift.timeStamp,
+      true
+    );
+    const unavailablePref: IPreference | undefined = this.getPreference(
+      shift.timeStamp,
+      false
+    );
+    if (!availablePref && !unavailablePref) return;
+
+    switch (toggle) {
+      case "assign":
+        if (availablePref) availablePref.handled = true;
+        else unavailablePref!.handled = false;
+        break;
+      case "unassign":
+        if (availablePref) availablePref.handled = false;
+        else unavailablePref!.handled = true;
+        break;
+    }
   }
 
   printPreferences() {
@@ -230,12 +256,3 @@ export class OrginizedShiftDay implements IOrganizedShiftDay {
     console.log("Time is ilegal. Should be one of morning, noon, evening");
   }
 }
-
-// let s1 = new Shift(1, "a");
-// let s2 = new Shift(2, "b");
-
-// s1.addUnavailable(new Student("bob"));
-// s2.addUnavailable(new Student("mo"));
-
-// console.log(s1.unavailable);
-// console.log(s2.unavailable);

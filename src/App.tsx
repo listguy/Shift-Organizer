@@ -26,29 +26,39 @@ const names: string[] = [
   "Asaf",
   "Shimon",
   "Anna",
-  "Idan",
-  "Danel",
   "Lahav",
-  "Sean",
-  "Omri",
+  "Idan",
+  // "Danel",
+  // "Sean",
+  // "Omri",
+];
+
+const mockPreferences: any = [
+  { week: 0, day: 0, shift: 0, available: true },
+  { week: 0, day: 0, shift: 0, available: true },
+  { week: 0, day: 3, shift: 1, available: false },
+  { week: 0, day: 6, shift: 2, available: false },
+  { week: 0, day: 2, shift: 0, available: true },
+  { week: 0, day: 4, shift: 2, available: false },
+  { week: 0, day: 5, shift: 1, available: false },
 ];
 const getRandomDay: () => number = () => Math.floor(Math.random() * 7) + 1;
 const getRandomWeek: () => number = () => Math.floor(Math.random() * 0) + 1;
-const getShift: () => number = () => [0, 1, 2][Math.floor(Math.random() * 3)];
+const getShift: () => number = () => Math.floor(Math.random() * 3);
 const getAvailable: () => boolean = () =>
   Boolean(Math.floor(Math.random() * 2));
 
 const SM = new ShiftManager();
 
-// const students: IStudent[] =
-names.map((name: string) => {
+names.forEach((name: string, i: number) => {
   const newStudent: IStudent = SM.addStudent(name)!;
+  const mockPref: any = mockPreferences[i];
   const pref: IPreference = new Preference(
     newStudent,
-    getRandomWeek() * weekInMs +
-      getRandomDay() * dayInMS +
-      getShift() * shiftInMS,
-    getAvailable()
+    mockPref.week * weekInMs +
+      mockPref.day * dayInMS +
+      mockPref.shift * shiftInMS,
+    mockPref.available
   );
   newStudent.addPreference(pref);
 });
@@ -146,6 +156,14 @@ function App() {
   };
 
   const organizeShifts: () => void = () => {
+    if (students.length < 1) {
+      Swal.fire(
+        "Sorry",
+        "You need to have at least one student to organize shifts",
+        "info"
+      );
+      return;
+    }
     if (students.length < 7) {
       Swal.fire({
         title: "Hey!",
@@ -286,7 +304,7 @@ const WarningMessage = styled.div`
   width: 8vw;
   height: 2vh;
   margin: 0.5vh;
-  padding: 6px 2px;
+  padding: 6px 5px;
   border-radius: 5px;
   font-size: 0.9em;
   text-overflow: ellipsis;
@@ -295,6 +313,6 @@ const WarningMessage = styled.div`
   transition: 0.2s ease-in-out;
 
   :hover {
-    width: 60vh;
+    width: fit-content;
   }
 `;

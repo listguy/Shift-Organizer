@@ -10,6 +10,7 @@ import {
   weekInMs,
 } from "../shift_organizer_modules/utils/interface";
 import { FaTrashAlt } from "react-icons/fa";
+import { RiCloseLine, RiCheckFill } from "react-icons/ri";
 
 const daysInWeek: string[] = [
   "Sunday",
@@ -144,38 +145,49 @@ export default function StudentsDeatails({
 
   return (
     <Wrapper data-flick>
-      {students.map((student: IStudent) => (
-        <Ticket key={`student-${student.name}`} className="caroucell">
-          <Header>
-            <h3>{student.name}</h3>
-            {/* @ts-ignore */}
-            <StyledButton
-              bgcolor="#5f0101"
-              onClick={() => promptRmvStudentModal(student.name)}
-            >
-              Remove Student
-            </StyledButton>
-          </Header>
-          <PrefList>
-            {student.getPreferences().map((pref: IPreference, i: number) => (
-              <PrefRow
-                key={`pref-${student.name}-${i}`}
-                available={pref.available}
+      {students.length > 0 ? (
+        students.map((student: IStudent) => (
+          <Ticket key={`student-${student.name}`} className="caroucell">
+            <Header>
+              <h3>{student.name}</h3>
+              <StyledButton
+                bgcolor="#5f0101"
+                onClick={() => promptRmvStudentModal(student.name)}
               >
-                {pref.getTimeString()}
-                {pref.handled ? "V" : "X"}
-                <TrashButton onClick={() => promptRmvModal(pref, student)}>
-                  <FaTrashAlt />
-                </TrashButton>
-              </PrefRow>
-            ))}
-          </PrefList>
-          {/* @ts-ignore */}
-          <StyledButton onClick={() => promptAddModal(student.name)}>
-            Add Pref
-          </StyledButton>
-        </Ticket>
-      ))}
+                Remove Student
+              </StyledButton>
+            </Header>
+            <PrefList>
+              {student.getPreferences().map((pref: IPreference, i: number) => (
+                <PrefRow
+                  key={`pref-${student.name}-${i}`}
+                  available={pref.available}
+                >
+                  {pref.handled ? (
+                    <RiCheckFill style={{ fontSize: "1.5em" }} />
+                  ) : (
+                    <RiCloseLine style={{ fontSize: "1.5em" }} />
+                  )}
+                  {pref.getTimeString()}
+                  <TrashButton onClick={() => promptRmvModal(pref, student)}>
+                    <FaTrashAlt />
+                  </TrashButton>
+                </PrefRow>
+              ))}
+            </PrefList>
+            {/* @ts-ignore */}
+            <StyledButton onClick={() => promptAddModal(student.name)}>
+              Add Pref
+            </StyledButton>
+          </Ticket>
+        ))
+      ) : (
+        <span
+          style={{ textAlign: "center", fontSize: "1.5em", margin: "0 auto" }}
+        >
+          No Students Exist
+        </span>
+      )}
     </Wrapper>
   );
 }
@@ -183,8 +195,9 @@ export default function StudentsDeatails({
 const Wrapper = styled.div`
   /* background-color: red; */
   display: flex;
-  /* justify-content: center; */
-  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  width: 99%;
   height: 28vh;
   min-height: 24vh;
   margin: auto;
@@ -259,15 +272,20 @@ const PrefList = styled.div`
 const PrefRow = styled.div`
   background-color: ${(props: { available: boolean }) =>
     props.available ? "#1a641e" : "rgb(126,5,5)"};
-  /* color: rgb(126, 11, 11); */
   display: grid;
-  grid-template-columns: 9fr 1fr;
+  align-items: center;
+  grid-template-columns: 1fr 8fr 1fr;
   margin: 1% 0;
   padding: 1% 2%;
 `;
 const TrashButton = styled.span`
   color: rgb(238, 34, 56);
   font-size: 1.2em;
+  cursor: pointer;
+  margin: 0 auto;
+
+  :hover {
+  }
 `;
 const StyledButton = styled.span`
   background-color: ${(props: { bgcolor: string }) =>

@@ -24,10 +24,13 @@ export interface IStudent {
   addShift(shift: IShift): void;
   removeShift(shift: IShift): void;
   printShifts(): void;
-  hasPreference(pref: IPreference): boolean;
+  // hasPreference(pref: IPreference): boolean;
+  hasPreference(stamp: number, available: boolean): boolean;
   addPreference(preference: IPreference): boolean | Error;
   removePreference(shiftToRemoveTimestamp: number): void;
+  getPreference(stamp: number, available: boolean): IPreference | undefined;
   getPreferences(): IPreference[];
+  handlePrefOfShift(shift: IShift, toggle: "assign" | "unassign"): void;
   printPreferences(): void;
 }
 
