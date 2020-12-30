@@ -203,8 +203,8 @@ function App() {
           </WarningMessage>
         ))}
       </WarningMsgContainer>
-      <MainTitle style={{ textAlign: "center" }}>
-        Shift Organizer <IoCalendarOutline />
+      <MainTitle>
+        Shift Organizer <IoCalendarOutline style={{ marginLeft: "1vw" }} />
       </MainTitle>
       <MainButtonsRow>
         <AddStudent addFunction={addStudent} />
@@ -240,6 +240,9 @@ function clamp(max: number, min: number, value: number): number {
   return Math.max(min, Math.min(max, value));
 }
 const MainTitle = styled.h1`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 3.8em;
   margin-bottom: 3vh;
 `;
