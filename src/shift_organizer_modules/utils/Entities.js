@@ -35,6 +35,12 @@ class Shift {
     addUnavailable(student) {
         this.unavailable.push(student);
     }
+    removeUnavailable(student) {
+        const toRemoveIndex = this.unavailable.findIndex((s) => s === student);
+        if (toRemoveIndex === -1)
+            return;
+        this.unavailable.splice(toRemoveIndex, 1);
+    }
     isStudentUnavailable(student) {
         return this.unavailable.includes(student);
     }

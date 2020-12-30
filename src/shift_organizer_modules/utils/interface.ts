@@ -9,6 +9,7 @@ export interface IShift {
   assignStudent(student: IStudent): void;
   unassignStudent(): void;
   addUnavailable(student: IStudent): void;
+  removeUnavailable(student: IStudent): void;
   isStudentUnavailable(student: IStudent): boolean;
   isAdjacent(otherShift: IShift | undefined): boolean;
   hasSameStudent(otherShift: IShift | undefined): boolean;
@@ -24,7 +25,6 @@ export interface IStudent {
   addShift(shift: IShift): void;
   removeShift(shift: IShift): void;
   printShifts(): void;
-  // hasPreference(pref: IPreference): boolean;
   hasPreference(stamp: number, available: boolean): boolean;
   addPreference(preference: IPreference): boolean | Error;
   removePreference(shiftToRemoveTimestamp: number): void;
@@ -42,7 +42,6 @@ export interface IPreference {
 
   getTimeObject(): IPreferenceShift;
   getTimeString(): string;
-  // didHandle(): boolean;
 }
 
 export interface IPreferenceShift {

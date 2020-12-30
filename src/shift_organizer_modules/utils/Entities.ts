@@ -56,6 +56,14 @@ export class Shift implements IShift {
     this.unavailable.push(student);
   }
 
+  removeUnavailable(student: IStudent): void {
+    const toRemoveIndex: number = this.unavailable.findIndex(
+      (s: IStudent) => s === student
+    );
+    if (toRemoveIndex === -1) return;
+    this.unavailable.splice(toRemoveIndex, 1);
+  }
+
   isStudentUnavailable(student: IStudent) {
     return this.unavailable.includes(student);
   }

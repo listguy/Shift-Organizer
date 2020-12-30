@@ -74,6 +74,7 @@ class ShiftManager {
         }
         try {
             student.removePreference(shiftToRemoveTimestamp);
+            this.getShiftByStamp(shiftToRemoveTimestamp)?.removeUnavailable(student);
             return true;
         }
         catch (e) {
@@ -81,9 +82,6 @@ class ShiftManager {
         }
     }
     getShift(week, day, time) {
-        // return this.shifts.find(
-        //   (shift: IShift) => shift.day === day && shift.time === time
-        // );
         if (!this.shifts[week - 1])
             return undefined;
         return this.shifts[week - 1][day - 1]?.getShiftByTime(time);
@@ -103,24 +101,10 @@ class ShiftManager {
         shift.assignStudent(student);
     }
     organize() {
-        // this.initShifts();
         const shifts = this.shifts;
         const students = this.students;
         const availablePreferences = [];
         const unavailablePreferences = [];
-        // will help to keep track of the students number of shifts
-        // const numberOfShiftsOfStudent: { name: string; counter: number }[] = students.map(
-        //   (student: IStudent) => {
-        //     return { name: student.name, counter: 0 };
-        //   }
-        // );
-        console.log(students);
-        const numberOfShiftsOfStudent = students.reduce((prev, student) => {
-            //TODO fix this
-            //@ts-ignore
-            prev[student.name] = 0;
-            return prev;
-        }, {});
         students.forEach((student) => student.preferences.forEach((preference) => {
             if (preference.available) {
                 availablePreferences.push(preference);
@@ -132,20 +116,12 @@ class ShiftManager {
         //first, assign all available preferences
         availablePreferences.forEach((pref) => {
             const { week, day, time, } = pref.getTimeObject();
-            // const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
             const desiredShift = this.getShift(week + 1, day + 1, time);
             if (desiredShift.chosen) {
-                // if chosen sudent has the current pref, continue
-                // if (desiredShift.chosen.hasPreference(pref)) return;
                 if (desiredShift.chosen.hasPreference(pref.shiftTimeStamp, pref.available))
                     return;
             }
-            // desiredShift.assignStudent(pref.student);
             this.assignStudentToShift(pref.student, desiredShift);
-            // pref.handled = true;
-            //TODO fix this
-            //@ts-ignore
-            numberOfShiftsOfStudent[pref.student] += 1;
         });
         // assign all unavailable preferences
         unavailablePreferences.forEach((pref) => {
@@ -219,22 +195,6 @@ class ShiftManager {
     }
 }
 exports.default = ShiftManager;
-//Min conflicts Algo pseudo code
-/*function MinConflicts(csp:any, max_steps:number) {
-  //csp:
-  //max_steps: number of steps before giving up
-
-  current = initial assigment for csp
-  for i=1 to max_steps do
-    if current is a solution for csp
-      return current
-    const randomVar = randomly chosen conflicted variable in csp
-    const value = the value for randomVar that minimizes conflicts
-    set var = value in current
-  
-
-  return failure
-} */
 function minConflicts(csp, students, maxSteps, treshold, weekendTreshold, SM) {
     let current = csp;
     for (let i = 1; i < maxSteps; i++) {
@@ -258,7 +218,6 @@ function shiftsAreOrganized(currentState, weekendTreshold, SM) {
                     legal = false;
                     break;
                 }
-                // console.log(curShift);
                 if (curShift.isStudentUnavailable(curShift.chosen)) {
                     legal = false;
                     break;
@@ -329,7 +288,6 @@ function getConflictsWith(student, shift, WeekendTreshold) {
         .concat(shift.timeStamp)
         .sort((a, b) => a - b)
         .reduce((sum, curShiftTime, index, shiftsArr) => {
-        // console.log(shiftsArr);
         if (index === shiftsArr.length - 1)
             return sum;
         return sum + (shiftsArr[index + 1] - curShiftTime) / interface_1.shiftInMS;
@@ -344,18 +302,12 @@ function evaluateCurrentShiftsOf(student) {
             .map((shift) => shift.timeStamp)
             .sort((a, b) => a - b)
             .reduce((sum, curShiftTime, index, shiftsArr) => {
-            // console.log(shiftsArr);
             if (index === shiftsArr.length - 1)
                 return sum;
             return sum + (shiftsArr[index + 1] - curShiftTime) / interface_1.shiftInMS;
         }, 0));
 }
 function calculateTreshold(sumStudents, sumShifts) {
-    // return (
-    //   1 /
-    //   ((sumStudents * (Math.floor(sumShifts / sumStudents) - 1)) /
-    //     (Math.floor(sumShifts / sumStudents) + 1))
-    // );
     return 1 / (sumStudents - 1);
 }
 //#region nothing to see here ...

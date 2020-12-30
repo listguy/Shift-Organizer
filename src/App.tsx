@@ -1,5 +1,5 @@
 import WeekTable from "./components/WeekTable";
-import { Preference, Student } from "./shift_organizer_modules/utils/Entities";
+import { Preference } from "./shift_organizer_modules/utils/Entities";
 import {
   dayInMS,
   IOrganizedShiftDay,
@@ -11,7 +11,7 @@ import {
   weekInMs,
 } from "./shift_organizer_modules/utils/interface";
 import ShiftManager from "./shift_organizer_modules/shiftOrginazor";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddStudent from "./components/AddStudent";
 import Swal, { SweetAlertResult } from "sweetalert2";
 import StudentsDeatails from "./components/StudentTicket";

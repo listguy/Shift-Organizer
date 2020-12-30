@@ -152,6 +152,7 @@ export default class ShiftManager implements IShiftManager {
 
     try {
       student.removePreference(shiftToRemoveTimestamp);
+      this.getShiftByStamp(shiftToRemoveTimestamp)?.removeUnavailable(student);
       return true;
     } catch (e) {
       throw e;
@@ -159,9 +160,6 @@ export default class ShiftManager implements IShiftManager {
   }
 
   getShift(week: number, day: number, time: string): IShift | undefined {
-    // return this.shifts.find(
-    //   (shift: IShift) => shift.day === day && shift.time === time
-    // );
     if (!this.shifts[week - 1]) return undefined;
     return this.shifts[week - 1][day - 1]?.getShiftByTime(time);
   }
@@ -188,27 +186,10 @@ export default class ShiftManager implements IShiftManager {
   }
 
   organize(): IOrganizedShiftDay[][] {
-    // this.initShifts();
     const shifts: IOrganizedShiftDay[][] = this.shifts;
     const students: IStudent[] = this.students;
     const availablePreferences: IPreference[] = [];
     const unavailablePreferences: IPreference[] = [];
-    // will help to keep track of the students number of shifts
-    // const numberOfShiftsOfStudent: { name: string; counter: number }[] = students.map(
-    //   (student: IStudent) => {
-    //     return { name: student.name, counter: 0 };
-    //   }
-    // );
-    console.log(students);
-    const numberOfShiftsOfStudent: any = students.reduce(
-      (prev, student: IStudent) => {
-        //TODO fix this
-        //@ts-ignore
-        prev[student.name] = 0;
-        return prev;
-      },
-      {}
-    );
 
     students.forEach((student: IStudent) =>
       student.preferences.forEach((preference: IPreference) => {
@@ -228,22 +209,14 @@ export default class ShiftManager implements IShiftManager {
         time,
       }: { week: number; day: number; time: string } = pref.getTimeObject();
 
-      // const desiredShift: IShift = shifts[week][day].getShiftByTime(time)!;
       const desiredShift: IShift = this.getShift(week + 1, day + 1, time)!;
       if (desiredShift.chosen) {
-        // if chosen sudent has the current pref, continue
-        // if (desiredShift.chosen.hasPreference(pref)) return;
         if (
           desiredShift.chosen.hasPreference(pref.shiftTimeStamp, pref.available)
         )
           return;
       }
-      // desiredShift.assignStudent(pref.student);
       this.assignStudentToShift(pref.student, desiredShift);
-      // pref.handled = true;
-      //TODO fix this
-      //@ts-ignore
-      numberOfShiftsOfStudent[pref.student] += 1;
     });
 
     // assign all unavailable preferences
@@ -375,22 +348,6 @@ export default class ShiftManager implements IShiftManager {
   }
 }
 
-//Min conflicts Algo pseudo code
-/*function MinConflicts(csp:any, max_steps:number) {
-  //csp: 
-  //max_steps: number of steps before giving up
-
-  current = initial assigment for csp
-  for i=1 to max_steps do
-    if current is a solution for csp
-      return current
-    const randomVar = randomly chosen conflicted variable in csp
-    const value = the value for randomVar that minimizes conflicts
-    set var = value in current
-  
-
-  return failure
-} */
 function minConflicts(
   csp: IOrganizedShiftDay[][],
   students: IStudent[],
@@ -428,7 +385,6 @@ function shiftsAreOrganized(
           legal = false;
           break;
         }
-        // console.log(curShift);
         if (curShift.isStudentUnavailable(curShift.chosen)) {
           legal = false;
           break;
@@ -554,7 +510,6 @@ function getConflictsWith(
         index: number,
         shiftsArr: number[]
       ) => {
-        // console.log(shiftsArr);
         if (index === shiftsArr.length - 1) return sum;
         return sum + (shiftsArr[index + 1] - curShiftTime) / shiftInMS;
       },
@@ -579,7 +534,6 @@ function evaluateCurrentShiftsOf(student: IStudent) {
           index: number,
           shiftsArr: number[]
         ) => {
-          // console.log(shiftsArr);
           if (index === shiftsArr.length - 1) return sum;
           return sum + (shiftsArr[index + 1] - curShiftTime) / shiftInMS;
         },
@@ -589,11 +543,6 @@ function evaluateCurrentShiftsOf(student: IStudent) {
 }
 
 function calculateTreshold(sumStudents: number, sumShifts: number): number {
-  // return (
-  //   1 /
-  //   ((sumStudents * (Math.floor(sumShifts / sumStudents) - 1)) /
-  //     (Math.floor(sumShifts / sumStudents) + 1))
-  // );
   return 1 / (sumStudents - 1);
 }
 

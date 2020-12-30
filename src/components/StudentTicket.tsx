@@ -87,7 +87,6 @@ export default function StudentsDeatails({
         else Swal.fire("Oops...", "Unknown error occured :( \n Sorry...");
       }
     }
-    // Swal.fire(JSON.stringify(formValue));
   }, []);
 
   const promptRmvModal = useCallback(
@@ -99,7 +98,6 @@ export default function StudentsDeatails({
         showCancelButton: true,
         cancelButtonColor: "#3085d6",
         confirmButtonColor: "#d33",
-        // cancelButtonText:"Delete",
         confirmButtonText: "Delete",
       }).then((result: SweetAlertResult) => {
         if (result.isConfirmed) {
