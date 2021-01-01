@@ -10,6 +10,7 @@ The tool i created splits shifts for a month between a changeable number of stud
 - A student should not have consecutive shifts 😵
 - Weekend shifts are worth double and should be split evenly 💰
 <br />
+
 ## Tools And Technologies
 
 - Writtten in TS <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/typescript/typescript-original.svg" height="18" width="18" />
