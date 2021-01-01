@@ -2,6 +2,8 @@
 
 This project is a solution for a shift organizing problem.
 <br />
+[Link](https://listguy.github.io/Shift-Organizer/) to demo deployment 
+<br />
 ## General
 The tool i created splits shifts for a month between a changeable number of students, taking into consideration their personal preferences, which are configureable too.
 <br />
@@ -17,3 +19,4 @@ The tool i created splits shifts for a month between a changeable number of stud
 - Frontend created with React <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original.svg" height="18" width="18" />
 - Min conflicts algorithm implemented to solve the problem 🤖
 - All styles 100% by me using styled components 💅
+- Available as a PWA ⏩
